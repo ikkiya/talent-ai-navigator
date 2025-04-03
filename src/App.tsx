@@ -10,12 +10,16 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import Unauthorized from "./pages/Unauthorized";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 
 // Manager pages
 import Matrices from "./pages/manager/Matrices";
 
 // Mentor pages
 import Recommendations from "./pages/mentor/Recommendations";
+import Mentees from "./pages/mentor/Mentees";
 
 // Protected route component
 const ProtectedRoute = ({ 
@@ -68,6 +72,18 @@ const App = () => (
               </ProtectedRoute>
             } />
             
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            
             {/* Manager routes */}
             <Route path="/manager/matrices" element={
               <ProtectedRoute requiredRoles={["admin", "manager"]}>
@@ -82,8 +98,14 @@ const App = () => (
               </ProtectedRoute>
             } />
             
+            <Route path="/mentor/mentees" element={
+              <ProtectedRoute requiredRoles={["admin", "mentor"]}>
+                <Mentees />
+              </ProtectedRoute>
+            } />
+            
             {/* Error routes */}
-            <Route path="/unauthorized" element={<div>Unauthorized</div>} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

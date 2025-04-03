@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +29,7 @@ const Settings = () => {
       showOnlineStatus: true,
       dataCollection: true,
       shareUsageData: false,
-      2faEnabled: false
+      twoFactorEnabled: false
     }
   });
   
@@ -353,8 +352,12 @@ const Settings = () => {
                           Add an extra layer of security to your account
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
-                        Setup 2FA
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => updateSetting('privacy', 'twoFactorEnabled', !settings.privacy.twoFactorEnabled)}
+                      >
+                        {settings.privacy.twoFactorEnabled ? 'Manage 2FA' : 'Setup 2FA'}
                       </Button>
                     </div>
                     

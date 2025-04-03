@@ -20,6 +20,8 @@ import TalentPool from "./pages/admin/TalentPool";
 import Reports from "./pages/admin/Reports";
 
 // Manager pages
+import Employees from "./pages/manager/Employees";
+import Projects from "./pages/manager/Projects";
 import Matrices from "./pages/manager/Matrices";
 
 // Mentor pages
@@ -109,6 +111,18 @@ const App = () => (
             } />
             
             {/* Manager routes */}
+            <Route path="/manager/employees" element={
+              <ProtectedRoute requiredRoles={["admin", "manager"]}>
+                <Employees />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/manager/projects" element={
+              <ProtectedRoute requiredRoles={["admin", "manager"]}>
+                <Projects />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/manager/matrices" element={
               <ProtectedRoute requiredRoles={["admin", "manager"]}>
                 <Matrices />

@@ -14,6 +14,11 @@ import Unauthorized from "./pages/Unauthorized";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 
+// Admin pages
+import Users from "./pages/admin/Users";
+import TalentPool from "./pages/admin/TalentPool";
+import Reports from "./pages/admin/Reports";
+
 // Manager pages
 import Matrices from "./pages/manager/Matrices";
 
@@ -81,6 +86,25 @@ const App = () => (
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            } />
+            
+            {/* Admin routes */}
+            <Route path="/admin/users" element={
+              <ProtectedRoute requiredRoles={["admin"]}>
+                <Users />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin/talent-pool" element={
+              <ProtectedRoute requiredRoles={["admin"]}>
+                <TalentPool />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin/reports" element={
+              <ProtectedRoute requiredRoles={["admin"]}>
+                <Reports />
               </ProtectedRoute>
             } />
             

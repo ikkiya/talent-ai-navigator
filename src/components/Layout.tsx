@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   LayoutDashboard, Users, User, FileSpreadsheet, 
   Settings, LogOut, BriefcaseBusiness, UserCog, 
-  BarChart, Sparkles 
+  BarChart, Sparkles, BarChart2, FileChart
 } from 'lucide-react';
 
 interface SidebarLinkProps {
@@ -102,7 +102,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <SidebarLink to="/manager/projects" icon={<BriefcaseBusiness className="h-5 w-5" />}>
                   Projects
                 </SidebarLink>
-                <SidebarLink to="/manager/matrices" icon={<FileSpreadsheet className="h-5 w-5" />}>
+                <SidebarLink to="/manager/matrices" icon={<FileChart className="h-5 w-5" />}>
                   Matrices
                 </SidebarLink>
               </>
@@ -159,8 +159,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <Link to="/dashboard" className="p-2">
           <LayoutDashboard className="h-6 w-6" />
         </Link>
-        {isAuthorized(['admin', 'manager']) && (
-          <Link to="/manager/employees" className="p-2">
+        {isAuthorized(['admin']) && (
+          <Link to="/admin/users" className="p-2">
             <Users className="h-6 w-6" />
           </Link>
         )}

@@ -7,10 +7,179 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FileSpreadsheet, Search, Download, Upload, Eye, FileChart, FileDown } from 'lucide-react';
+import { FileSpreadsheet, Search, Download, Upload, Eye, FileText, FileDown } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { api } from '@/services/api';
 import { Employee } from '@/types';
+
+const mockEmployees: Employee[] = [
+  {
+    id: '1',
+    employeeId: 'EMP001',
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john.doe@company.com',
+    department: 'Engineering',
+    position: 'Senior Developer',
+    status: 'active',
+    hireDate: '2020-03-15T00:00:00Z',
+    managerId: '3',
+    mentorId: '5',
+    notes: 'Full-stack developer with 5 years of experience in React and Node.js. Interested in AI and machine learning.',
+    projectAssignments: [
+      {
+        id: '1',
+        projectName: 'Dashboard Redesign',
+        role: 'Lead Developer',
+        startDate: '2024-12-01T00:00:00Z',
+        endDate: '2025-06-30T00:00:00Z',
+        utilizationPercentage: 80
+      }
+    ]
+  },
+  {
+    id: '2',
+    employeeId: 'EMP002',
+    firstName: 'Jane',
+    lastName: 'Smith',
+    email: 'jane.smith@company.com',
+    department: 'Product',
+    position: 'Product Manager',
+    status: 'active',
+    hireDate: '2021-05-20T00:00:00Z',
+    managerId: '3',
+    mentorId: null,
+    notes: 'Experienced product manager with background in user research and go-to-market strategies.',
+    projectAssignments: [
+      {
+        id: '2',
+        projectName: 'Dashboard Redesign',
+        role: 'Product Manager',
+        startDate: '2024-12-01T00:00:00Z',
+        endDate: '2025-06-30T00:00:00Z',
+        utilizationPercentage: 50
+      },
+      {
+        id: '3',
+        projectName: 'Mobile App v2',
+        role: 'Product Owner',
+        startDate: '2025-01-15T00:00:00Z',
+        endDate: '2025-08-30T00:00:00Z',
+        utilizationPercentage: 50
+      }
+    ]
+  },
+  {
+    id: '3',
+    employeeId: 'EMP003',
+    firstName: 'Michael',
+    lastName: 'Johnson',
+    email: 'michael.johnson@company.com',
+    department: 'Engineering',
+    position: 'Engineering Manager',
+    status: 'active',
+    hireDate: '2018-11-03T00:00:00Z',
+    managerId: null,
+    mentorId: null,
+    notes: 'Engineering manager with strong technical and leadership skills. Manages a team of 10 engineers.',
+    projectAssignments: [
+      {
+        id: '4',
+        projectName: 'Dashboard Redesign',
+        role: 'Engineering Manager',
+        startDate: '2024-12-01T00:00:00Z',
+        endDate: '2025-06-30T00:00:00Z',
+        utilizationPercentage: 30
+      },
+      {
+        id: '5',
+        projectName: 'Mobile App v2',
+        role: 'Technical Advisor',
+        startDate: '2025-01-15T00:00:00Z',
+        endDate: '2025-08-30T00:00:00Z',
+        utilizationPercentage: 20
+      }
+    ]
+  },
+  {
+    id: '4',
+    employeeId: 'EMP004',
+    firstName: 'Emily',
+    lastName: 'Williams',
+    email: 'emily.williams@company.com',
+    department: 'Design',
+    position: 'UX Designer',
+    status: 'active',
+    hireDate: '2022-02-15T00:00:00Z',
+    managerId: '6',
+    mentorId: null,
+    notes: 'UX designer with experience in user research, wireframing, and prototyping.',
+    projectAssignments: [
+      {
+        id: '6',
+        projectName: 'Dashboard Redesign',
+        role: 'Lead Designer',
+        startDate: '2024-12-01T00:00:00Z',
+        endDate: '2025-06-30T00:00:00Z',
+        utilizationPercentage: 70
+      }
+    ]
+  },
+  {
+    id: '5',
+    employeeId: 'EMP005',
+    firstName: 'Robert',
+    lastName: 'Brown',
+    email: 'robert.brown@company.com',
+    department: 'Engineering',
+    position: 'Principal Engineer',
+    status: 'active',
+    hireDate: '2016-08-10T00:00:00Z',
+    managerId: '3',
+    mentorId: null,
+    notes: 'Principal engineer with expertise in system architecture and technical leadership.',
+    projectAssignments: [
+      {
+        id: '7',
+        projectName: 'Mobile App v2',
+        role: 'Principal Engineer',
+        startDate: '2025-01-15T00:00:00Z',
+        endDate: '2025-08-30T00:00:00Z',
+        utilizationPercentage: 60
+      }
+    ]
+  },
+  {
+    id: '6',
+    employeeId: 'EMP006',
+    firstName: 'Sophia',
+    lastName: 'Martinez',
+    email: 'sophia.martinez@company.com',
+    department: 'Design',
+    position: 'Design Manager',
+    status: 'onLeave',
+    hireDate: '2019-06-22T00:00:00Z',
+    managerId: null,
+    mentorId: null,
+    notes: 'Design manager currently on parental leave. Expected to return in July 2025.',
+    projectAssignments: []
+  },
+  {
+    id: '7',
+    employeeId: 'EMP007',
+    firstName: 'David',
+    lastName: 'Garcia',
+    email: 'david.garcia@company.com',
+    department: 'Engineering',
+    position: 'Frontend Developer',
+    status: 'inactive',
+    hireDate: '2023-01-10T00:00:00Z',
+    managerId: '3',
+    mentorId: '1',
+    notes: 'Frontend developer specializing in React and CSS. Currently on extended leave for personal reasons.',
+    projectAssignments: []
+  }
+];
 
 const TalentPool = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -24,9 +193,14 @@ const TalentPool = () => {
   React.useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const data = await api.employees.getAll();
-        setEmployees(data);
-        setIsLoading(false);
+        // In a real application, we would use the API to fetch data
+        // const data = await api.employees.getAll();
+        
+        // For now, we'll use mock data with a delay to simulate loading
+        setTimeout(() => {
+          setEmployees(mockEmployees);
+          setIsLoading(false);
+        }, 1000);
       } catch (error) {
         toast({
           title: "Error",
@@ -61,25 +235,31 @@ const TalentPool = () => {
         description: "Uploading and processing talent pool data"
       });
       
-      // Call the API to process the file
-      const result = await api.files.uploadILBAMTalentPool(file);
-      
-      if (result.success) {
+      // Mock API call to process the file
+      setTimeout(() => {
         toast({
           title: "Upload successful",
-          description: result.message
+          description: "Talent pool data has been updated"
         });
         
-        // Refresh the data
-        const data = await api.employees.getAll();
-        setEmployees(data);
-      } else {
-        toast({
-          title: "Upload failed",
-          description: result.message,
-          variant: "destructive"
-        });
-      }
+        // Add a few more fake employees to simulate data import
+        setEmployees([...mockEmployees, ...Array(3).fill(null).map((_, i) => ({
+          id: `${mockEmployees.length + i + 1}`,
+          employeeId: `EMP00${mockEmployees.length + i + 1}`,
+          firstName: `New`,
+          lastName: `Employee ${i + 1}`,
+          email: `new.employee${i + 1}@company.com`,
+          department: i % 2 === 0 ? 'Engineering' : 'Marketing',
+          position: i % 2 === 0 ? 'Developer' : 'Marketing Specialist',
+          status: 'active',
+          hireDate: new Date().toISOString(),
+          managerId: null,
+          mentorId: null,
+          notes: 'Newly imported employee data',
+          projectAssignments: []
+        }))]);
+      }, 2000);
+      
     } catch (error) {
       toast({
         title: "Error",
@@ -214,7 +394,7 @@ const TalentPool = () => {
                             }}
                             title="View competency matrix"
                           >
-                            <FileChart className="h-4 w-4" />
+                            <FileText className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>

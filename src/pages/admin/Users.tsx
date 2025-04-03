@@ -12,62 +12,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
 import { UserRole } from '@/types';
 
-const mockUsers = [
-  {
-    id: '1',
-    username: 'admin',
-    email: 'admin@company.com',
-    firstName: 'Admin',
-    lastName: 'User',
-    role: 'admin' as UserRole,
-    status: 'active',
-    lastLogin: '2025-04-02T10:30:00Z',
-    avatarUrl: 'https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&w=100&h=100'
-  },
-  {
-    id: '2',
-    username: 'manager',
-    email: 'manager@company.com',
-    firstName: 'Project',
-    lastName: 'Manager',
-    role: 'manager' as UserRole,
-    status: 'active',
-    lastLogin: '2025-04-01T15:45:00Z',
-    avatarUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=100&h=100'
-  },
-  {
-    id: '3',
-    username: 'mentor',
-    email: 'mentor@company.com',
-    firstName: 'Senior',
-    lastName: 'Mentor',
-    role: 'mentor' as UserRole,
-    status: 'active',
-    lastLogin: '2025-04-03T08:15:00Z',
-    avatarUrl: 'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&fit=crop&w=100&h=100'
-  },
-  {
-    id: '4',
-    username: 'jdoe',
-    email: 'john.doe@company.com',
-    firstName: 'John',
-    lastName: 'Doe',
-    role: 'manager' as UserRole,
-    status: 'inactive',
-    lastLogin: '2025-03-20T11:30:00Z'
-  },
-  {
-    id: '5',
-    username: 'asmith',
-    email: 'alice.smith@company.com',
-    firstName: 'Alice',
-    lastName: 'Smith',
-    role: 'mentor' as UserRole,
-    status: 'invited',
-    lastLogin: null
-  }
-];
-
 type UserStatus = 'active' | 'inactive' | 'invited';
 
 interface UserData {
@@ -81,6 +25,62 @@ interface UserData {
   lastLogin: string | null;
   avatarUrl?: string;
 }
+
+const mockUsers: UserData[] = [
+  {
+    id: '1',
+    username: 'admin',
+    email: 'admin@company.com',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin',
+    status: 'active',
+    lastLogin: '2025-04-02T10:30:00Z',
+    avatarUrl: 'https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&w=100&h=100'
+  },
+  {
+    id: '2',
+    username: 'manager',
+    email: 'manager@company.com',
+    firstName: 'Project',
+    lastName: 'Manager',
+    role: 'manager',
+    status: 'active',
+    lastLogin: '2025-04-01T15:45:00Z',
+    avatarUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=100&h=100'
+  },
+  {
+    id: '3',
+    username: 'mentor',
+    email: 'mentor@company.com',
+    firstName: 'Senior',
+    lastName: 'Mentor',
+    role: 'mentor',
+    status: 'active',
+    lastLogin: '2025-04-03T08:15:00Z',
+    avatarUrl: 'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&fit=crop&w=100&h=100'
+  },
+  {
+    id: '4',
+    username: 'jdoe',
+    email: 'john.doe@company.com',
+    firstName: 'John',
+    lastName: 'Doe',
+    role: 'manager',
+    status: 'inactive',
+    lastLogin: '2025-03-20T11:30:00Z'
+  },
+  {
+    id: '5',
+    username: 'asmith',
+    email: 'alice.smith@company.com',
+    firstName: 'Alice',
+    lastName: 'Smith',
+    role: 'mentor',
+    status: 'invited',
+    lastLogin: null
+  }
+];
 
 const Users = () => {
   const [users, setUsers] = useState<UserData[]>(mockUsers);

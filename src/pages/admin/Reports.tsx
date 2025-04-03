@@ -1,102 +1,95 @@
 
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BarChart as BarChartIcon, PieChart, Calendar, Download, Filter, ChevronDown, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  BarChart, BarChartHorizontal, LineChart, PieChart, Download, Share2, 
-  ChevronDown, FileDown, BarChart as BarChartIcon
-} from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import {
-  Bar,
-  BarChart as ReBarChart,
-  Line,
-  LineChart as ReLineChart,
-  Pie,
-  PieChart as RePieChart,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Cell
-} from 'recharts';
+import { Button } from '@/components/ui/button';
+import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { format, subMonths } from 'date-fns';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-// Mock data for reports
-const departmentDistributionData = [
-  { name: 'Engineering', value: 45 },
-  { name: 'Product Management', value: 15 },
-  { name: 'Marketing', value: 10 },
-  { name: 'Sales', value: 12 },
-  { name: 'Customer Support', value: 8 },
-  { name: 'HR', value: 5 },
-  { name: 'Finance', value: 5 }
-];
-
+// Sample data for reports
 const skillDistributionData = [
-  { name: 'JavaScript', count: 32 },
-  { name: 'Python', count: 28 },
-  { name: 'Java', count: 25 },
-  { name: 'SQL', count: 38 },
-  { name: 'React', count: 22 },
-  { name: 'AWS', count: 18 },
-  { name: 'DevOps', count: 15 },
-  { name: 'UX Design', count: 10 }
+  { name: 'JavaScript', value: 48 },
+  { name: 'Python', value: 35 },
+  { name: 'Java', value: 25 },
+  { name: 'C#', value: 22 },
+  { name: 'Ruby', value: 15 },
+  { name: 'Go', value: 12 },
+  { name: 'PHP', value: 8 },
 ];
 
-const retentionRiskData = [
-  { name: 'Low', value: 45, color: '#4ade80' },
-  { name: 'Medium', value: 30, color: '#facc15' },
-  { name: 'High', value: 25, color: '#f87171' }
+const departmentDistributionData = [
+  { name: 'Engineering', value: 42 },
+  { name: 'Product', value: 18 },
+  { name: 'Design', value: 15 },
+  { name: 'Marketing', value: 12 },
+  { name: 'Sales', value: 10 },
+  { name: 'HR', value: 5 },
+  { name: 'Finance', value: 8 },
 ];
 
-const headcountTrendData = [
-  { month: 'Jan', headcount: 120 },
-  { month: 'Feb', headcount: 118 },
-  { month: 'Mar', headcount: 125 },
-  { month: 'Apr', headcount: 132 },
-  { month: 'May', headcount: 135 },
-  { month: 'Jun', headcount: 140 },
-  { month: 'Jul', headcount: 145 },
-  { month: 'Aug', headcount: 150 },
-  { month: 'Sep', headcount: 148 },
-  { month: 'Oct', headcount: 155 },
-  { month: 'Nov', headcount: 158 },
-  { month: 'Dec', headcount: 160 }
+const roleLevelDistributionData = [
+  { name: 'Junior', value: 35 },
+  { name: 'Mid-Level', value: 40 },
+  { name: 'Senior', value: 20 },
+  { name: 'Lead', value: 10 },
+  { name: 'Manager', value: 8 },
+  { name: 'Director', value: 4 },
 ];
 
-const projectUtilizationData = [
-  { project: 'Project Alpha', utilization: 85 },
-  { project: 'Project Beta', utilization: 72 },
-  { project: 'Project Gamma', utilization: 93 },
-  { project: 'Project Delta', utilization: 65 },
-  { project: 'Project Epsilon', utilization: 78 }
+const hiringTrendData = Array.from({ length: 12 }, (_, i) => {
+  const date = subMonths(new Date(), i);
+  return {
+    month: format(date, 'MMM'),
+    hires: Math.floor(Math.random() * 20) + 5,
+    attrition: Math.floor(Math.random() * 10),
+  };
+}).reverse();
+
+const skillGapData = [
+  { name: 'AI/ML', required: 25, available: 15 },
+  { name: 'Cloud', required: 40, available: 35 },
+  { name: 'DevOps', required: 30, available: 20 },
+  { name: 'Mobile', required: 35, available: 25 },
+  { name: 'Security', required: 20, available: 10 },
+  { name: 'Data Science', required: 15, available: 8 },
 ];
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
+const performanceData = [
+  { name: 'Exceeds', value: 15 },
+  { name: 'Meets+', value: 30 },
+  { name: 'Meets', value: 40 },
+  { name: 'Needs Improvement', value: 10 },
+  { name: 'Below', value: 5 },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d', '#ffc658'];
+
+// Custom tooltip for charts that handles different value types
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-background border rounded-md shadow-md p-3">
+        <p className="font-medium">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={`item-${index}`} style={{ color: entry.color }}>
+            {`${entry.name}: ${typeof entry.value === 'number' ? entry.value.toString() : entry.value}`}
+          </p>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
+};
 
 const Reports = () => {
-  const [reportPeriod, setReportPeriod] = useState('2025-q1');
-  const [reportType, setReportType] = useState('organizational');
-
-  const downloadReport = (format: string) => {
-    toast({
-      title: "Downloading report",
-      description: `Report is being downloaded in ${format.toUpperCase()} format`
-    });
-  };
-
-  const shareReport = () => {
-    toast({
-      title: "Share report",
-      description: "Share link has been copied to clipboard"
-    });
-  };
-
+  const [reportPeriod, setReportPeriod] = useState('last-month');
+  const [reportType, setReportType] = useState('workforce');
+  
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
@@ -104,655 +97,366 @@ const Reports = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
             <p className="text-muted-foreground">
-              Analyze talent metrics and organizational insights
+              Analyze talent distribution and trends
             </p>
           </div>
-          <div className="flex gap-2">
-            <Select value={reportPeriod} onValueChange={setReportPeriod}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select period" />
+          <div className="flex items-center gap-2">
+            <Select defaultValue={reportPeriod} onValueChange={setReportPeriod}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Time period" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="2025-q1">Q1 2025</SelectItem>
-                <SelectItem value="2024-q4">Q4 2024</SelectItem>
-                <SelectItem value="2024-q3">Q3 2024</SelectItem>
-                <SelectItem value="2024-q2">Q2 2024</SelectItem>
-                <SelectItem value="2024-full">Full Year 2024</SelectItem>
+                <SelectItem value="last-month">Last Month</SelectItem>
+                <SelectItem value="last-quarter">Last Quarter</SelectItem>
+                <SelectItem value="last-year">Last Year</SelectItem>
+                <SelectItem value="all-time">All Time</SelectItem>
               </SelectContent>
             </Select>
-            <div className="relative">
-              <Button variant="outline" className="flex items-center gap-1">
-                <Download className="h-4 w-4" />
-                Export
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              <div className="absolute right-0 mt-2 w-48 bg-card border rounded-md shadow-lg z-10 hidden group-hover:block">
-                <ul>
-                  <li className="px-4 py-2 hover:bg-accent cursor-pointer" onClick={() => downloadReport('pdf')}>
-                    Export as PDF
-                  </li>
-                  <li className="px-4 py-2 hover:bg-accent cursor-pointer" onClick={() => downloadReport('excel')}>
-                    Export as Excel
-                  </li>
-                  <li className="px-4 py-2 hover:bg-accent cursor-pointer" onClick={() => downloadReport('csv')}>
-                    Export as CSV
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <Button variant="ghost" onClick={shareReport}>
-              <Share2 className="h-4 w-4" />
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export
             </Button>
           </div>
         </div>
-        
-        <Tabs defaultValue="organizational" className="space-y-4" value={reportType} onValueChange={setReportType}>
-          <TabsList>
-            <TabsTrigger value="organizational">Organizational</TabsTrigger>
-            <TabsTrigger value="talent">Talent</TabsTrigger>
-            <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="retention">Retention</TabsTrigger>
+
+        <Tabs defaultValue={reportType} onValueChange={setReportType} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="workforce">
+              <BarChartIcon className="h-4 w-4 mr-2" />
+              Workforce Analytics
+            </TabsTrigger>
+            <TabsTrigger value="skills">
+              <PieChart className="h-4 w-4 mr-2" />
+              Skills Analysis
+            </TabsTrigger>
+            <TabsTrigger value="performance">
+              <Calendar className="h-4 w-4 mr-2" />
+              Performance Metrics
+            </TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="organizational" className="space-y-4">
+
+          <TabsContent value="workforce" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5" />
-                    <span>Department Distribution</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Headcount distribution across departments
-                  </CardDescription>
+                  <CardTitle>Department Distribution</CardTitle>
+                  <CardDescription>Employee distribution across departments</CardDescription>
                 </CardHeader>
                 <CardContent className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <RePieChart>
+                    <PieChart>
                       <Pie
                         data={departmentDistributionData}
                         cx="50%"
                         cy="50%"
+                        labelLine={false}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                       >
                         {departmentDistributionData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => [`${value} employees`, 'Count']} />
-                      <Legend />
-                    </RePieChart>
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend verticalAlign="bottom" height={36} />
+                    </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <LineChart className="h-5 w-5" />
-                    <span>Headcount Trend</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Monthly headcount changes over time
-                  </CardDescription>
+                  <CardTitle>Role Level Distribution</CardTitle>
+                  <CardDescription>Employee distribution by seniority</CardDescription>
                 </CardHeader>
                 <CardContent className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ReLineChart data={headcountTrendData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="headcount" stroke="#8884d8" activeDot={{ r: 8 }} />
-                    </ReLineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChartHorizontal className="h-5 w-5" />
-                  <span>Department Metrics</span>
-                </CardTitle>
-                <CardDescription>
-                  Key metrics by department
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="px-4 py-2 text-left">Department</th>
-                        <th className="px-4 py-2 text-right">Headcount</th>
-                        <th className="px-4 py-2 text-right">Avg. Tenure (years)</th>
-                        <th className="px-4 py-2 text-right">Open Positions</th>
-                        <th className="px-4 py-2 text-right">Attrition Rate</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b">
-                        <td className="px-4 py-2">Engineering</td>
-                        <td className="px-4 py-2 text-right">45</td>
-                        <td className="px-4 py-2 text-right">3.5</td>
-                        <td className="px-4 py-2 text-right">5</td>
-                        <td className="px-4 py-2 text-right">12%</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="px-4 py-2">Product Management</td>
-                        <td className="px-4 py-2 text-right">15</td>
-                        <td className="px-4 py-2 text-right">4.2</td>
-                        <td className="px-4 py-2 text-right">2</td>
-                        <td className="px-4 py-2 text-right">8%</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="px-4 py-2">Marketing</td>
-                        <td className="px-4 py-2 text-right">10</td>
-                        <td className="px-4 py-2 text-right">2.8</td>
-                        <td className="px-4 py-2 text-right">1</td>
-                        <td className="px-4 py-2 text-right">15%</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="px-4 py-2">Sales</td>
-                        <td className="px-4 py-2 text-right">12</td>
-                        <td className="px-4 py-2 text-right">2.1</td>
-                        <td className="px-4 py-2 text-right">3</td>
-                        <td className="px-4 py-2 text-right">18%</td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-2">Customer Support</td>
-                        <td className="px-4 py-2 text-right">8</td>
-                        <td className="px-4 py-2 text-right">1.9</td>
-                        <td className="px-4 py-2 text-right">2</td>
-                        <td className="px-4 py-2 text-right">22%</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="talent" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChartIcon className="h-5 w-5" />
-                    <span>Skill Distribution</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Most common skills across the organization
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ReBarChart data={skillDistributionData}>
+                    <BarChart
+                      data={roleLevelDistributionData}
+                      margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                      }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="count" fill="#8884d8" />
-                    </ReBarChart>
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="value" fill="#8884d8">
+                        {roleLevelDistributionData.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5" />
-                    <span>Skill Gap Analysis</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Skill supply vs. demand for critical competencies
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Cloud Architecture</span>
-                        <span className="text-sm text-red-500">-35%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-red-500 h-2.5 rounded-full" style={{ width: '35%' }}></div>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">Demand exceeds supply by 35%</div>
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Machine Learning</span>
-                        <span className="text-sm text-red-500">-40%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-red-500 h-2.5 rounded-full" style={{ width: '40%' }}></div>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">Demand exceeds supply by 40%</div>
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">DevOps</span>
-                        <span className="text-sm text-red-500">-25%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-red-500 h-2.5 rounded-full" style={{ width: '25%' }}></div>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">Demand exceeds supply by 25%</div>
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">JavaScript</span>
-                        <span className="text-sm text-green-500">+15%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '85%' }}></div>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">Supply exceeds demand by 15%</div>
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Project Management</span>
-                        <span className="text-sm text-green-500">+10%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '90%' }}></div>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">Supply exceeds demand by 10%</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
-            
+
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChartHorizontal className="h-5 w-5" />
-                  <span>Talent Acquisition</span>
-                </CardTitle>
-                <CardDescription>
-                  Hiring metrics and recruitment pipeline
-                </CardDescription>
+                <CardTitle>Hiring and Attrition Trends</CardTitle>
+                <CardDescription>Monthly hiring and attrition rates</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-muted p-4 rounded-lg">
-                    <div className="text-2xl font-bold">12</div>
-                    <div className="text-sm text-muted-foreground">Open Positions</div>
-                  </div>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <div className="text-2xl font-bold">45</div>
-                    <div className="text-sm text-muted-foreground">Active Candidates</div>
-                  </div>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <div className="text-2xl font-bold">38 days</div>
-                    <div className="text-sm text-muted-foreground">Avg. Time to Hire</div>
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium mb-4">Hiring Pipeline</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Applied (120)</span>
-                        <span className="text-sm">100%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: '100%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Screening (65)</span>
-                        <span className="text-sm">54%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: '54%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Interview (28)</span>
-                        <span className="text-sm">23%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: '23%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Offer (12)</span>
-                        <span className="text-sm">10%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: '10%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Hired (8)</span>
-                        <span className="text-sm">7%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: '7%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <CardContent className="h-96">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={hiringTrendData}
+                    margin={{
+                      top: 10,
+                      right: 30,
+                      left: 0,
+                      bottom: 0,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                    <Area type="monotone" dataKey="hires" stackId="1" stroke="#82ca9d" fill="#82ca9d" />
+                    <Area type="monotone" dataKey="attrition" stackId="2" stroke="#ffc658" fill="#ffc658" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </CardContent>
+              <CardFooter className="flex justify-between">
+                <p className="text-sm text-muted-foreground">Data for the last 12 months</p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filter
+                      <ChevronDown className="h-4 w-4 ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>All Departments</DropdownMenuItem>
+                    <DropdownMenuItem>Engineering</DropdownMenuItem>
+                    <DropdownMenuItem>Product</DropdownMenuItem>
+                    <DropdownMenuItem>Design</DropdownMenuItem>
+                    <DropdownMenuItem>Marketing</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </CardFooter>
             </Card>
           </TabsContent>
-          
-          <TabsContent value="projects" className="space-y-4">
+
+          <TabsContent value="skills" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChartIcon className="h-5 w-5" />
-                    <span>Project Utilization</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Resource allocation across active projects
-                  </CardDescription>
+                  <CardTitle>Skill Distribution</CardTitle>
+                  <CardDescription>Most common skills in the talent pool</CardDescription>
                 </CardHeader>
                 <CardContent className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ReBarChart data={projectUtilizationData} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" domain={[0, 100]} />
-                      <YAxis dataKey="project" type="category" width={100} />
-                      <Tooltip formatter={(value) => [`${value}%`, 'Utilization']} />
-                      <Legend />
-                      <Bar dataKey="utilization" fill="#8884d8" />
-                    </ReBarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChartIcon className="h-5 w-5" />
-                    <span>Project Status Overview</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Current status of all projects
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-muted p-4 rounded-lg">
-                        <div className="text-2xl font-bold">12</div>
-                        <div className="text-sm text-muted-foreground">Active Projects</div>
-                      </div>
-                      <div className="bg-muted p-4 rounded-lg">
-                        <div className="text-2xl font-bold">4</div>
-                        <div className="text-sm text-muted-foreground">Completed Projects</div>
-                      </div>
-                      <div className="bg-muted p-4 rounded-lg">
-                        <div className="text-2xl font-bold">3</div>
-                        <div className="text-sm text-muted-foreground">Planning Phase</div>
-                      </div>
-                      <div className="bg-muted p-4 rounded-lg">
-                        <div className="text-2xl font-bold">1</div>
-                        <div className="text-sm text-muted-foreground">On Hold</div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-lg font-medium mb-3">Project Health</h3>
-                      <div className="space-y-3">
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                          <div className="text-sm mr-4">Healthy</div>
-                          <div className="w-full bg-muted rounded-full h-2.5 flex-1">
-                            <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '60%' }}></div>
-                          </div>
-                          <div className="text-sm ml-2">60%</div>
-                        </div>
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-                          <div className="text-sm mr-4">At Risk</div>
-                          <div className="w-full bg-muted rounded-full h-2.5 flex-1">
-                            <div className="bg-yellow-500 h-2.5 rounded-full" style={{ width: '25%' }}></div>
-                          </div>
-                          <div className="text-sm ml-2">25%</div>
-                        </div>
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                          <div className="text-sm mr-4">Critical</div>
-                          <div className="w-full bg-muted rounded-full h-2.5 flex-1">
-                            <div className="bg-red-500 h-2.5 rounded-full" style={{ width: '15%' }}></div>
-                          </div>
-                          <div className="text-sm ml-2">15%</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChartHorizontal className="h-5 w-5" />
-                  <span>Skills Demand Forecast</span>
-                </CardTitle>
-                <CardDescription>
-                  Projected skills needed for upcoming projects
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="px-4 py-2 text-left">Skill Area</th>
-                        <th className="px-4 py-2 text-right">Current Capacity</th>
-                        <th className="px-4 py-2 text-right">Q2 2025 Demand</th>
-                        <th className="px-4 py-2 text-right">Q3 2025 Demand</th>
-                        <th className="px-4 py-2 text-right">Gap</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b">
-                        <td className="px-4 py-2">Full Stack Development</td>
-                        <td className="px-4 py-2 text-right">18 FTE</td>
-                        <td className="px-4 py-2 text-right">22 FTE</td>
-                        <td className="px-4 py-2 text-right">25 FTE</td>
-                        <td className="px-4 py-2 text-right text-red-500">-7 FTE</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="px-4 py-2">DevOps</td>
-                        <td className="px-4 py-2 text-right">6 FTE</td>
-                        <td className="px-4 py-2 text-right">8 FTE</td>
-                        <td className="px-4 py-2 text-right">10 FTE</td>
-                        <td className="px-4 py-2 text-right text-red-500">-4 FTE</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="px-4 py-2">AI/ML</td>
-                        <td className="px-4 py-2 text-right">4 FTE</td>
-                        <td className="px-4 py-2 text-right">7 FTE</td>
-                        <td className="px-4 py-2 text-right">8 FTE</td>
-                        <td className="px-4 py-2 text-right text-red-500">-4 FTE</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="px-4 py-2">UX Design</td>
-                        <td className="px-4 py-2 text-right">5 FTE</td>
-                        <td className="px-4 py-2 text-right">6 FTE</td>
-                        <td className="px-4 py-2 text-right">6 FTE</td>
-                        <td className="px-4 py-2 text-right text-red-500">-1 FTE</td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-2">Project Management</td>
-                        <td className="px-4 py-2 text-right">8 FTE</td>
-                        <td className="px-4 py-2 text-right">7 FTE</td>
-                        <td className="px-4 py-2 text-right">8 FTE</td>
-                        <td className="px-4 py-2 text-right text-green-500">+0 FTE</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="retention" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5" />
-                    <span>Retention Risk</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Distribution of employees by retention risk level
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RePieChart>
+                    <PieChart>
                       <Pie
-                        data={retentionRiskData}
+                        data={skillDistributionData}
                         cx="50%"
                         cy="50%"
+                        labelLine={false}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => {
+                          const percentValue = percent * 100;
+                          return `${name}: ${typeof percentValue === 'number' ? percentValue.toFixed(0) : percentValue}%`;
+                        }}
                       >
-                        {retentionRiskData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        {skillDistributionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => [`${value} employees`, 'Count']} />
-                      <Legend />
-                    </RePieChart>
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend verticalAlign="bottom" height={36} />
+                    </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <LineChart className="h-5 w-5" />
-                    <span>Attrition Rate Trend</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Monthly employee attrition rate
-                  </CardDescription>
+                  <CardTitle>Skill Gap Analysis</CardTitle>
+                  <CardDescription>Required vs available skills</CardDescription>
                 </CardHeader>
                 <CardContent className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ReLineChart data={headcountTrendData.map(item => ({
-                      ...item,
-                      attrition: Math.random() * 5 + 2
-                    }))}>
+                    <BarChart
+                      data={skillGapData}
+                      margin={{
+                        top: 20,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                      }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
+                      <XAxis dataKey="name" />
                       <YAxis />
-                      <Tooltip formatter={(value) => [`${value.toFixed(1)}%`, 'Attrition Rate']} />
+                      <Tooltip content={<CustomTooltip />} />
                       <Legend />
-                      <Line type="monotone" dataKey="attrition" stroke="#f87171" activeDot={{ r: 8 }} />
-                    </ReLineChart>
+                      <Bar dataKey="required" fill="#8884d8" />
+                      <Bar dataKey="available" fill="#82ca9d" />
+                    </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
             </div>
             
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChartHorizontal className="h-5 w-5" />
-                  <span>Retention Factors</span>
-                </CardTitle>
-                <CardDescription>
-                  Key factors affecting employee retention
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div>
+                  <CardTitle>Skills Gap Report</CardTitle>
+                  <CardDescription>Detailed analysis of skills gaps in the organization</CardDescription>
+                </div>
+                <Button variant="outline" size="sm">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Generate Report
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Top Retention Challenges</h3>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Compensation</span>
-                        <span className="text-sm">82%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-red-500 h-2.5 rounded-full" style={{ width: '82%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Career Growth</span>
-                        <span className="text-sm">75%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-red-500 h-2.5 rounded-full" style={{ width: '75%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Work-Life Balance</span>
-                        <span className="text-sm">65%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-red-500 h-2.5 rounded-full" style={{ width: '65%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Recognition</span>
-                        <span className="text-sm">60%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-red-500 h-2.5 rounded-full" style={{ width: '60%' }}></div>
-                      </div>
-                    </div>
+                <div className="space-y-4">
+                  <div className="rounded-md border p-4">
+                    <h3 className="font-medium mb-2">Critical Skills Gaps</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>AI/ML specialists - 40% gap</li>
+                      <li>Security engineers - 50% gap</li>
+                      <li>Data scientists - 47% gap</li>
+                    </ul>
                   </div>
                   
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Retention Strategies</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="border rounded-lg p-4">
-                        <h4 className="font-medium mb-2">High Flight Risk</h4>
-                        <ul className="list-disc pl-5 space-y-1 text-sm">
-                          <li>Targeted compensation adjustments</li>
-                          <li>Career path discussions</li>
-                          <li>Retention bonuses</li>
-                          <li>Special project assignments</li>
-                        </ul>
-                      </div>
-                      <div className="border rounded-lg p-4">
-                        <h4 className="font-medium mb-2">Medium Flight Risk</h4>
-                        <ul className="list-disc pl-5 space-y-1 text-sm">
-                          <li>Regular 1:1 check-ins</li>
-                          <li>Development opportunities</li>
-                          <li>Recognition programs</li>
-                          <li>Flexible work arrangements</li>
-                        </ul>
-                      </div>
-                    </div>
+                  <div className="rounded-md border p-4">
+                    <h3 className="font-medium mb-2">Recommendations</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Focus hiring efforts on AI/ML and security roles</li>
+                      <li>Develop internal training programs for data science</li>
+                      <li>Consider contractor resources for immediate needs</li>
+                    </ul>
                   </div>
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="performance" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance Distribution</CardTitle>
+                <CardDescription>Overall performance ratings distribution</CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={performanceData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => {
+                        const percentValue = percent * 100;
+                        return `${name}: ${typeof percentValue === 'number' ? percentValue.toFixed(0) : percentValue}%`;
+                      }}
+                    >
+                      {performanceData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend verticalAlign="bottom" height={36} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Top Performers</CardTitle>
+                  <CardDescription>Employees with highest ratings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="flex items-center gap-3 text-sm">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
+                          {i}
+                        </div>
+                        <div>
+                          <p className="font-medium">Employee Name {i}</p>
+                          <p className="text-xs text-muted-foreground">Department</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Performance by Department</CardTitle>
+                  <CardDescription>Average ratings by department</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {['Engineering', 'Product', 'Design', 'Marketing', 'Sales'].map((dept) => (
+                      <div key={dept} className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span>{dept}</span>
+                          <span className="font-medium">{(3 + Math.random() * 1.5).toFixed(1)}/5</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                          <div 
+                            className="h-full bg-primary" 
+                            style={{ width: `${60 + Math.random() * 30}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Performance Trends</CardTitle>
+                  <CardDescription>Year-over-year comparison</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <p className="text-5xl font-bold">+12%</p>
+                      <p className="text-sm text-muted-foreground">YoY improvement</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>This year</span>
+                        <span className="font-medium">4.2/5</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                        <div className="h-full bg-primary" style={{ width: '84%' }} />
+                      </div>
+                      
+                      <div className="flex justify-between text-sm mt-3">
+                        <span>Last year</span>
+                        <span className="font-medium">3.7/5</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                        <div className="h-full bg-primary" style={{ width: '74%' }} />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

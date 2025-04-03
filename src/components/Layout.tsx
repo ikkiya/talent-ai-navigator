@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   LayoutDashboard, Users, User, FileSpreadsheet, 
   Settings, LogOut, BriefcaseBusiness, UserCog, 
-  BarChart, Sparkles, BarChart2, FileChart
+  BarChart, Sparkles, BarChart2, FileText
 } from 'lucide-react';
 
 interface SidebarLinkProps {
@@ -36,7 +36,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { auth, logout, isAuthorized } = useAuth();
   const navigate = useNavigate();
   
-  // If not authenticated, redirect to login
   React.useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
       navigate('/login');
@@ -58,7 +57,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      {/* Sidebar */}
       <div className="w-64 hidden md:flex flex-col h-full border-r bg-sidebar text-sidebar-foreground">
         <div className="p-4 border-b border-sidebar-border flex items-center gap-3">
           <Sparkles className="h-6 w-6 text-brand-blue" />
@@ -67,12 +65,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         
         <div className="py-4 flex-1 overflow-y-auto">
           <nav className="space-y-1 px-2">
-            {/* Common links for all users */}
             <SidebarLink to="/dashboard" icon={<LayoutDashboard className="h-5 w-5" />} end>
               Dashboard
             </SidebarLink>
             
-            {/* Admin links */}
             {isAuthorized(['admin']) && (
               <>
                 <div className="pt-5 pb-2 px-3 text-xs font-semibold text-muted-foreground">
@@ -90,7 +86,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </>
             )}
             
-            {/* Manager links */}
             {isAuthorized(['admin', 'manager']) && (
               <>
                 <div className="pt-5 pb-2 px-3 text-xs font-semibold text-muted-foreground">
@@ -102,13 +97,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <SidebarLink to="/manager/projects" icon={<BriefcaseBusiness className="h-5 w-5" />}>
                   Projects
                 </SidebarLink>
-                <SidebarLink to="/manager/matrices" icon={<FileChart className="h-5 w-5" />}>
+                <SidebarLink to="/manager/matrices" icon={<FileText className="h-5 w-5" />}>
                   Matrices
                 </SidebarLink>
               </>
             )}
             
-            {/* Mentor links */}
             {isAuthorized(['admin', 'mentor']) && (
               <>
                 <div className="pt-5 pb-2 px-3 text-xs font-semibold text-muted-foreground">
@@ -154,7 +148,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </div>
       
-      {/* Mobile sidebar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50 flex justify-around py-2">
         <Link to="/dashboard" className="p-2">
           <LayoutDashboard className="h-6 w-6" />
@@ -179,13 +172,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </Link>
       </div>
       
-      {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
         <header className="h-16 border-b bg-background flex items-center justify-between px-4 md:px-6">
           <div className="flex items-center">
             <h2 className="text-lg font-semibold">
-              {/* Page title would go here, but we'll keep it simple for now */}
               TalentNavigator
             </h2>
           </div>
@@ -198,7 +188,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         </header>
         
-        {/* Page content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
           {children}
         </main>

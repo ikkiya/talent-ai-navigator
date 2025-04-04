@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Sparkles } from 'lucide-react';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { auth, login } = useAuth();
@@ -29,7 +29,7 @@ const Login = () => {
     
     setIsSubmitting(true);
     try {
-      await login(username, password);
+      await login(email, password);
     } finally {
       setIsSubmitting(false);
     }
@@ -66,12 +66,13 @@ const Login = () => {
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="username"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -96,9 +97,9 @@ const Login = () => {
               <div className="text-sm text-muted-foreground">
                 <p>Demo Accounts:</p>
                 <ul className="list-disc list-inside text-xs space-y-1 mt-1">
-                  <li>Username: admin, Password: password</li>
-                  <li>Username: manager, Password: password</li>
-                  <li>Username: mentor, Password: password</li>
+                  <li>Email: admin@company.com, Password: password123</li>
+                  <li>Email: manager@company.com, Password: password123</li>
+                  <li>Email: mentor@company.com, Password: password123</li>
                 </ul>
               </div>
             </CardContent>

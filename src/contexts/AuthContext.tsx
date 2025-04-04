@@ -1,48 +1,20 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthState, User, UserRole } from '@/types';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   auth: AuthState;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthorized: (requiredRoles: UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock data for initial development
-const mockUsers = [
-  {
-    id: '1',
-    username: 'admin',
-    email: 'admin@example.com',
-    firstName: 'Admin',
-    lastName: 'User',
-    role: 'admin' as UserRole,
-    avatarUrl: '',
-  },
-  {
-    id: '2',
-    username: 'manager',
-    email: 'manager@example.com',
-    firstName: 'Manager',
-    lastName: 'User',
-    role: 'manager' as UserRole,
-    avatarUrl: '',
-  },
-  {
-    id: '3',
-    username: 'mentor',
-    email: 'mentor@example.com',
-    firstName: 'Mentor',
-    lastName: 'User',
-    role: 'mentor' as UserRole,
-    avatarUrl: '',
-  },
-];
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { toast } = useToast();
   const [auth, setAuth] = useState<AuthState>({
     user: null,
     token: localStorage.getItem('token'),
@@ -52,91 +24,164 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   useEffect(() => {
-    // Check if there's a stored token and validate it
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (token && storedUser) {
+    // Check for an active session on page load
+    const checkSession = async () => {
       try {
-        // In a real app, you would validate the token with your backend
-        const user = JSON.parse(storedUser) as User;
-        setAuth({
-          user,
-          token,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+
+        if (data?.session) {
+          // Get user profile data from your users table
+          const { data: userData, error: userError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.session.user.id)
+            .single();
+
+          if (userError) {
+            throw userError;
+          }
+
+          const role = userData?.role as UserRole || 'manager';
+
+          const user: User = {
+            id: data.session.user.id,
+            username: data.session.user.email?.split('@')[0] || '',
+            email: data.session.user.email || '',
+            firstName: userData?.first_name || '',
+            lastName: userData?.last_name || '',
+            role: role,
+            avatarUrl: userData?.avatar_url || '',
+          };
+
+          setAuth({
+            user,
+            token: data.session.access_token,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+        } else {
+          // No active session
+          setAuth(prev => ({ ...prev, isLoading: false }));
+        }
       } catch (error) {
-        // If token validation fails, clear storage
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        console.error('Auth error:', error);
         setAuth({
           user: null,
           token: null,
           isAuthenticated: false,
           isLoading: false,
-          error: 'Session expired. Please login again.',
+          error: 'Failed to check authentication status',
         });
       }
-    } else {
-      setAuth(prev => ({ ...prev, isLoading: false }));
-    }
+    };
+
+    checkSession();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          // User signed in or token refreshed
+          try {
+            // Get user profile data
+            const { data: userData, error: userError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            if (userError && userError.code !== 'PGRST116') {
+              throw userError;
+            }
+
+            const role = userData?.role as UserRole || 'manager';
+
+            const user: User = {
+              id: session.user.id,
+              username: session.user.email?.split('@')[0] || '',
+              email: session.user.email || '',
+              firstName: userData?.first_name || '',
+              lastName: userData?.last_name || '',
+              role: role,
+              avatarUrl: userData?.avatar_url || '',
+            };
+
+            setAuth({
+              user,
+              token: session.access_token,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+          } catch (error) {
+            console.error('Profile fetch error:', error);
+            setAuth(prev => ({ ...prev, isLoading: false }));
+          }
+        } else {
+          // User signed out
+          setAuth({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          });
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
-      // This would be a real API call in production
-      // For demo purposes, we use mock data
       setAuth(prev => ({ ...prev, isLoading: true, error: null }));
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Find user by username
-      const user = mockUsers.find(u => u.username === username);
-      
-      // Simple validation (in production, this would be done by your backend)
-      if (!user || password !== 'password') {
-        throw new Error('Invalid username or password');
-      }
-      
-      // Create a mock JWT token
-      const token = `mock-jwt-token-${user.id}-${Date.now()}`;
-      
-      // Store in localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      setAuth({
-        user,
-        token,
-        isAuthenticated: true,
-        isLoading: false,
-        error: null,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-    } catch (error) {
+
+      if (error) {
+        throw error;
+      }
+
+      // Auth state will be updated by the onAuthStateChange listener
+    } catch (error: any) {
+      console.error('Login error:', error);
       setAuth(prev => ({
         ...prev,
-        user: null,
-        token: null,
-        isAuthenticated: false,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'An unknown error occurred',
+        error: error.message || 'Failed to sign in',
       }));
+      
+      toast({
+        title: "Login failed",
+        description: error.message || "Invalid credentials. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setAuth({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
-    });
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      // Auth state will be updated by the onAuthStateChange listener
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Logout error",
+        description: "There was a problem signing out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const isAuthorized = (requiredRoles: UserRole[]) => {

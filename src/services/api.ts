@@ -1,5 +1,22 @@
+
 import { supabase } from '@/lib/supabase';
-import { Employee, Project, TeamRecommendation } from '@/types';
+import { Employee, Project, TeamRecommendation, UserRole } from '@/types';
+
+// Helper to ensure status has the correct type
+const mapEmployeeStatus = (status: string): 'active' | 'inactive' | 'onLeave' => {
+  if (status === 'active' || status === 'inactive' || status === 'onLeave') {
+    return status;
+  }
+  return 'active'; // Default fallback
+};
+
+// Helper to ensure project status has the correct type
+const mapProjectStatus = (status: string): 'planning' | 'active' | 'completed' | 'onHold' => {
+  if (status === 'planning' || status === 'active' || status === 'completed' || status === 'onHold') {
+    return status;
+  }
+  return 'active'; // Default fallback
+};
 
 // Real API service that connects to Supabase
 export const api = {
@@ -96,7 +113,7 @@ export const api = {
                 managerId: employee.manager_id || undefined,
                 mentorId: employee.mentor_id || undefined,
                 hireDate: employee.hire_date,
-                status: employee.status,
+                status: mapEmployeeStatus(employee.status),
                 expectedDepartureDate: employee.expected_departure_date || undefined,
                 projectAssignments: formattedAssignments,
                 competencyMatrix,
@@ -116,7 +133,7 @@ export const api = {
                 managerId: employee.manager_id || undefined,
                 mentorId: employee.mentor_id || undefined,
                 hireDate: employee.hire_date,
-                status: employee.status,
+                status: mapEmployeeStatus(employee.status),
                 projectAssignments: [],
               };
             }
@@ -197,7 +214,7 @@ export const api = {
         managerId: employee.manager_id || undefined,
         mentorId: employee.mentor_id || undefined,
         hireDate: employee.hire_date,
-        status: employee.status,
+        status: mapEmployeeStatus(employee.status),
         expectedDepartureDate: employee.expected_departure_date || undefined,
         projectAssignments: formattedAssignments,
         competencyMatrix,
@@ -255,7 +272,7 @@ export const api = {
             managerId: employee.manager_id || undefined,
             mentorId: employee.mentor_id || undefined,
             hireDate: employee.hire_date,
-            status: employee.status,
+            status: mapEmployeeStatus(employee.status),
             expectedDepartureDate: employee.expected_departure_date || undefined,
             projectAssignments: formattedAssignments,
             notes: employee.notes || undefined,
@@ -278,7 +295,6 @@ export const api = {
       }
       
       // Similar implementation as getByManager
-      // Simplified for brevity
       return employees.map(employee => ({
         id: employee.id,
         employeeId: employee.employee_id,
@@ -290,7 +306,7 @@ export const api = {
         managerId: employee.manager_id || undefined,
         mentorId: employee.mentor_id || undefined,
         hireDate: employee.hire_date,
-        status: employee.status,
+        status: mapEmployeeStatus(employee.status),
         projectAssignments: [],
       }));
     },
@@ -393,7 +409,7 @@ export const api = {
               description: project.description,
               startDate: project.start_date,
               endDate: project.end_date || undefined,
-              status: project.status,
+              status: mapProjectStatus(project.status),
               teamMembers: [],
               requiredSkills: project.required_skills,
             };
@@ -421,7 +437,7 @@ export const api = {
                 managerId: employee.manager_id || undefined,
                 mentorId: employee.mentor_id || undefined,
                 hireDate: employee.hire_date,
-                status: employee.status,
+                status: mapEmployeeStatus(employee.status),
                 projectAssignments: [], // We don't need full assignment data here
               }));
             }
@@ -433,7 +449,7 @@ export const api = {
             description: project.description,
             startDate: project.start_date,
             endDate: project.end_date || undefined,
-            status: project.status,
+            status: mapProjectStatus(project.status),
             teamMembers,
             requiredSkills: project.required_skills,
           };
@@ -464,7 +480,7 @@ export const api = {
         description: project.description,
         startDate: project.start_date,
         endDate: project.end_date || undefined,
-        status: project.status,
+        status: mapProjectStatus(project.status),
         teamMembers: [], // Would fetch team members in a real implementation
         requiredSkills: project.required_skills,
       };
@@ -572,7 +588,7 @@ export const api = {
         managerId: employee.manager_id || undefined,
         mentorId: employee.mentor_id || undefined,
         hireDate: employee.hire_date,
-        status: employee.status,
+        status: mapEmployeeStatus(employee.status),
         projectAssignments: [], // Simplified, would fetch in real implementation
       }));
       
@@ -587,7 +603,7 @@ export const api = {
         managerId: employee.manager_id || undefined,
         mentorId: employee.mentor_id || undefined,
         hireDate: employee.hire_date,
-        status: employee.status,
+        status: mapEmployeeStatus(employee.status),
         projectAssignments: [], // Simplified, would fetch in real implementation
       }));
       

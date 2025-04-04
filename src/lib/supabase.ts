@@ -6,5 +6,8 @@ export const supabase = supabaseClient;
 
 // Helper function to check if Supabase is configured
 export const isSupabaseConfigured = () => {
-  return true; // We're now using the direct import, so it's always configured
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  
+  return Boolean(supabaseUrl && supabaseKey);
 };

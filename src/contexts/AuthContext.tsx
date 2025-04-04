@@ -11,6 +11,15 @@ interface AuthContextType {
   isAuthorized: (requiredRoles: UserRole[]) => boolean;
 }
 
+// Create a type for the profile data
+interface Profile {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  role: UserRole;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -41,20 +50,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .eq('id', data.session.user.id)
             .single();
 
-          if (userError && userError.code !== 'PGRST116') {
-            console.warn('User profile not found, using default data');
+          if (userError) {
+            console.warn('User profile not found:', userError);
           }
 
-          const role = (userData?.role as UserRole) || 'manager';
+          const profile = userData as Profile | null;
+          const role = profile?.role || 'manager';
 
           const user: User = {
             id: data.session.user.id,
             username: data.session.user.email?.split('@')[0] || '',
             email: data.session.user.email || '',
-            firstName: userData?.first_name || '',
-            lastName: userData?.last_name || '',
-            role: role,
-            avatarUrl: userData?.avatar_url || '',
+            firstName: profile?.first_name || '',
+            lastName: profile?.last_name || '',
+            role: role as UserRole,
+            avatarUrl: profile?.avatar_url || '',
           };
 
           setAuth({
@@ -95,20 +105,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .eq('id', session.user.id)
               .single();
 
-            if (userError && userError.code !== 'PGRST116') {
-              console.warn('User profile not found, using default data');
+            if (userError) {
+              console.warn('User profile not found:', userError);
             }
 
-            const role = (userData?.role as UserRole) || 'manager';
+            const profile = userData as Profile | null;
+            const role = profile?.role || 'manager';
 
             const user: User = {
               id: session.user.id,
               username: session.user.email?.split('@')[0] || '',
               email: session.user.email || '',
-              firstName: userData?.first_name || '',
-              lastName: userData?.last_name || '',
-              role: role,
-              avatarUrl: userData?.avatar_url || '',
+              firstName: profile?.first_name || '',
+              lastName: profile?.last_name || '',
+              role: role as UserRole,
+              avatarUrl: profile?.avatar_url || '',
             };
 
             setAuth({

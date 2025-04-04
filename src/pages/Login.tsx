@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, AlertTriangle } from 'lucide-react';
+import { isSupabaseConfigured } from '@/lib/supabase';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -15,6 +16,7 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { auth, login } = useAuth();
   const navigate = useNavigate();
+  const supabaseConfigured = isSupabaseConfigured();
 
   useEffect(() => {
     if (auth.isAuthenticated) {
@@ -25,7 +27,7 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isSubmitting) return;
+    if (isSubmitting || !supabaseConfigured) return;
     
     setIsSubmitting(true);
     try {
@@ -59,6 +61,15 @@ const Login = () => {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
+              {!supabaseConfigured && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  <AlertDescription>
+                    Supabase configuration is missing. Please set the VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
               {auth.error && (
                 <Alert variant="destructive">
                   <AlertDescription>{auth.error}</AlertDescription>
@@ -74,6 +85,7 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={!supabaseConfigured}
                 />
               </div>
               
@@ -91,6 +103,7 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={!supabaseConfigured}
                 />
               </div>
               
@@ -108,7 +121,7 @@ const Login = () => {
               <Button 
                 type="submit" 
                 className="w-full"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !supabaseConfigured}
               >
                 {isSubmitting ? "Signing in..." : "Sign In"}
               </Button>

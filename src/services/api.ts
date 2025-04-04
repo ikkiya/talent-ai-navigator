@@ -1,5 +1,4 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { Employee, Project, TeamRecommendation } from '@/types';
 
 // Real API service that connects to Supabase
@@ -17,91 +16,118 @@ export const api = {
   // Employee endpoints
   employees: {
     getAll: async (): Promise<Employee[]> => {
-      const { data: employees, error } = await supabase
-        .from('employees')
-        .select('*');
+      try {
+        const { data: employees, error } = await supabase
+          .from('employees')
+          .select('*');
+          
+        if (error) {
+          console.error('Error fetching employees:', error);
+          throw error;
+        }
         
-      if (error) {
-        console.error('Error fetching employees:', error);
-        throw error;
+        if (!employees) {
+          return [];
+        }
+        
+        // Fetch project assignments for each employee
+        const employeesWithAssignments = await Promise.all(
+          employees.map(async (employee) => {
+            try {
+              const { data: assignments, error: assignmentsError } = await supabase
+                .from('project_assignments')
+                .select(`
+                  id,
+                  project_id,
+                  role,
+                  start_date,
+                  end_date,
+                  utilization_percentage,
+                  projects(name)
+                `)
+                .eq('employee_id', employee.id);
+                
+              if (assignmentsError) {
+                console.error('Error fetching assignments:', assignmentsError);
+                return {
+                  ...employee,
+                  projectAssignments: [],
+                };
+              }
+              
+              // Format assignments
+              const formattedAssignments = assignments ? assignments.map(assignment => ({
+                id: assignment.id,
+                projectId: assignment.project_id,
+                projectName: assignment.projects?.name || 'Unknown Project',
+                role: assignment.role,
+                startDate: assignment.start_date,
+                endDate: assignment.end_date || undefined,
+                utilizationPercentage: assignment.utilization_percentage,
+              })) : [];
+              
+              // Get competency matrix
+              const { data: competencyData, error: competencyError } = await supabase
+                .from('competency_matrices')
+                .select('skills')
+                .eq('employee_id', employee.id)
+                .single();
+                
+              const competencyMatrix = competencyError ? undefined : competencyData?.skills as Record<string, number>;
+              
+              // Get retention matrix
+              const { data: retentionData, error: retentionError } = await supabase
+                .from('retention_matrices')
+                .select('factors')
+                .eq('employee_id', employee.id)
+                .single();
+                
+              const retentionMatrix = retentionError ? undefined : retentionData?.factors as Record<string, number>;
+              
+              // Map to our application's Employee type
+              return {
+                id: employee.id,
+                employeeId: employee.employee_id,
+                firstName: employee.first_name,
+                lastName: employee.last_name,
+                email: employee.email,
+                department: employee.department,
+                position: employee.position,
+                managerId: employee.manager_id || undefined,
+                mentorId: employee.mentor_id || undefined,
+                hireDate: employee.hire_date,
+                status: employee.status,
+                expectedDepartureDate: employee.expected_departure_date || undefined,
+                projectAssignments: formattedAssignments,
+                competencyMatrix,
+                retentionMatrix,
+                notes: employee.notes || undefined,
+              };
+            } catch (error) {
+              console.error('Error processing employee data:', error);
+              return {
+                id: employee.id,
+                employeeId: employee.employee_id,
+                firstName: employee.first_name,
+                lastName: employee.last_name,
+                email: employee.email,
+                department: employee.department,
+                position: employee.position,
+                managerId: employee.manager_id || undefined,
+                mentorId: employee.mentor_id || undefined,
+                hireDate: employee.hire_date,
+                status: employee.status,
+                projectAssignments: [],
+              };
+            }
+          })
+        );
+        
+        return employeesWithAssignments;
+      } catch (error) {
+        console.error('Error in getAll employees:', error);
+        return [];
       }
-      
-      // Fetch project assignments for each employee
-      const employeesWithAssignments = await Promise.all(
-        employees.map(async (employee) => {
-          const { data: assignments, error: assignmentsError } = await supabase
-            .from('project_assignments')
-            .select(`
-              id,
-              project_id,
-              role,
-              start_date,
-              end_date,
-              utilization_percentage,
-              projects(name)
-            `)
-            .eq('employee_id', employee.id);
-            
-          if (assignmentsError) {
-            console.error('Error fetching assignments:', assignmentsError);
-            return {
-              ...employee,
-              projectAssignments: [],
-            };
-          }
-          
-          // Format assignments
-          const formattedAssignments = assignments.map(assignment => ({
-            id: assignment.id,
-            projectId: assignment.project_id,
-            projectName: assignment.projects?.name || 'Unknown Project',
-            role: assignment.role,
-            startDate: assignment.start_date,
-            endDate: assignment.end_date || undefined,
-            utilizationPercentage: assignment.utilization_percentage,
-          }));
-          
-          // Get competency matrix
-          const { data: competencyData, error: competencyError } = await supabase
-            .from('competency_matrices')
-            .select('skills')
-            .eq('employee_id', employee.id)
-            .single();
-            
-          const competencyMatrix = competencyError ? undefined : competencyData?.skills as Record<string, number>;
-          
-          // Get retention matrix
-          const { data: retentionData, error: retentionError } = await supabase
-            .from('retention_matrices')
-            .select('factors')
-            .eq('employee_id', employee.id)
-            .single();
-            
-          const retentionMatrix = retentionError ? undefined : retentionData?.factors as Record<string, number>;
-          
-          // Map to our application's Employee type
-          return {
-            id: employee.id,
-            employeeId: employee.employee_id,
-            firstName: employee.first_name,
-            lastName: employee.last_name,
-            email: employee.email,
-            department: employee.department,
-            position: employee.position,
-            managerId: employee.manager_id || undefined,
-            mentorId: employee.mentor_id || undefined,
-            hireDate: employee.hire_date,
-            status: employee.status,
-            expectedDepartureDate: employee.expected_departure_date || undefined,
-            projectAssignments: formattedAssignments,
-            competencyMatrix,
-            retentionMatrix,
-            notes: employee.notes || undefined,
-          };
-        })
-      );
-      
-      return employeesWithAssignments;
     },
     
     getById: async (id: string): Promise<Employee | null> => {

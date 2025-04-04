@@ -1,558 +1,480 @@
-import React, { useState } from 'react';
-import Layout from '@/components/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import React, { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FileSpreadsheet, Search, Download, Upload, Eye, FileText, FileDown } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Upload, FileSpreadsheet, AlertTriangle, Trash2 } from 'lucide-react';
 import { api } from '@/services/api';
 import { Employee } from '@/types';
-
-const mockEmployees: Employee[] = [
-  {
-    id: '1',
-    employeeId: 'EMP001',
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@company.com',
-    department: 'Engineering',
-    position: 'Senior Developer',
-    status: 'active',
-    hireDate: '2020-03-15T00:00:00Z',
-    managerId: '3',
-    mentorId: '5',
-    notes: 'Full-stack developer with 5 years of experience in React and Node.js. Interested in AI and machine learning.',
-    projectAssignments: [
-      {
-        id: '1',
-        projectId: 'proj1',
-        projectName: 'Dashboard Redesign',
-        role: 'Lead Developer',
-        startDate: '2024-12-01T00:00:00Z',
-        endDate: '2025-06-30T00:00:00Z',
-        utilizationPercentage: 80
-      }
-    ]
-  },
-  {
-    id: '2',
-    employeeId: 'EMP002',
-    firstName: 'Jane',
-    lastName: 'Smith',
-    email: 'jane.smith@company.com',
-    department: 'Product',
-    position: 'Product Manager',
-    status: 'active',
-    hireDate: '2021-05-20T00:00:00Z',
-    managerId: '3',
-    mentorId: null,
-    notes: 'Experienced product manager with background in user research and go-to-market strategies.',
-    projectAssignments: [
-      {
-        id: '2',
-        projectId: 'proj1',
-        projectName: 'Dashboard Redesign',
-        role: 'Product Manager',
-        startDate: '2024-12-01T00:00:00Z',
-        endDate: '2025-06-30T00:00:00Z',
-        utilizationPercentage: 50
-      },
-      {
-        id: '3',
-        projectId: 'proj2',
-        projectName: 'Mobile App v2',
-        role: 'Product Owner',
-        startDate: '2025-01-15T00:00:00Z',
-        endDate: '2025-08-30T00:00:00Z',
-        utilizationPercentage: 50
-      }
-    ]
-  },
-  {
-    id: '3',
-    employeeId: 'EMP003',
-    firstName: 'Michael',
-    lastName: 'Johnson',
-    email: 'michael.johnson@company.com',
-    department: 'Engineering',
-    position: 'Engineering Manager',
-    status: 'active',
-    hireDate: '2018-11-03T00:00:00Z',
-    managerId: null,
-    mentorId: null,
-    notes: 'Engineering manager with strong technical and leadership skills. Manages a team of 10 engineers.',
-    projectAssignments: [
-      {
-        id: '4',
-        projectId: 'proj1',
-        projectName: 'Dashboard Redesign',
-        role: 'Engineering Manager',
-        startDate: '2024-12-01T00:00:00Z',
-        endDate: '2025-06-30T00:00:00Z',
-        utilizationPercentage: 30
-      },
-      {
-        id: '5',
-        projectId: 'proj2',
-        projectName: 'Mobile App v2',
-        role: 'Technical Advisor',
-        startDate: '2025-01-15T00:00:00Z',
-        endDate: '2025-08-30T00:00:00Z',
-        utilizationPercentage: 20
-      }
-    ]
-  },
-  {
-    id: '4',
-    employeeId: 'EMP004',
-    firstName: 'Emily',
-    lastName: 'Williams',
-    email: 'emily.williams@company.com',
-    department: 'Design',
-    position: 'UX Designer',
-    status: 'active',
-    hireDate: '2022-02-15T00:00:00Z',
-    managerId: '6',
-    mentorId: null,
-    notes: 'UX designer with experience in user research, wireframing, and prototyping.',
-    projectAssignments: [
-      {
-        id: '6',
-        projectId: 'proj1',
-        projectName: 'Dashboard Redesign',
-        role: 'Lead Designer',
-        startDate: '2024-12-01T00:00:00Z',
-        endDate: '2025-06-30T00:00:00Z',
-        utilizationPercentage: 70
-      }
-    ]
-  },
-  {
-    id: '5',
-    employeeId: 'EMP005',
-    firstName: 'Robert',
-    lastName: 'Brown',
-    email: 'robert.brown@company.com',
-    department: 'Engineering',
-    position: 'Principal Engineer',
-    status: 'active',
-    hireDate: '2016-08-10T00:00:00Z',
-    managerId: '3',
-    mentorId: null,
-    notes: 'Principal engineer with expertise in system architecture and technical leadership.',
-    projectAssignments: [
-      {
-        id: '7',
-        projectId: 'proj2',
-        projectName: 'Mobile App v2',
-        role: 'Principal Engineer',
-        startDate: '2025-01-15T00:00:00Z',
-        endDate: '2025-08-30T00:00:00Z',
-        utilizationPercentage: 60
-      }
-    ]
-  },
-  {
-    id: '6',
-    employeeId: 'EMP006',
-    firstName: 'Sophia',
-    lastName: 'Martinez',
-    email: 'sophia.martinez@company.com',
-    department: 'Design',
-    position: 'Design Manager',
-    status: 'onLeave',
-    hireDate: '2019-06-22T00:00:00Z',
-    managerId: null,
-    mentorId: null,
-    notes: 'Design manager currently on parental leave. Expected to return in July 2025.',
-    projectAssignments: []
-  },
-  {
-    id: '7',
-    employeeId: 'EMP007',
-    firstName: 'David',
-    lastName: 'Garcia',
-    email: 'david.garcia@company.com',
-    department: 'Engineering',
-    position: 'Frontend Developer',
-    status: 'inactive',
-    hireDate: '2023-01-10T00:00:00Z',
-    managerId: '3',
-    mentorId: '1',
-    notes: 'Frontend developer specializing in React and CSS. Currently on extended leave for personal reasons.',
-    projectAssignments: []
-  }
-];
-
-const addMockEmployees = () => {
-  const newEmployees = [...mockEmployees];
-  
-  for (let i = 0; i < 5; i++) {
-    newEmployees.push({
-      id: `mock-${Date.now()}-${i}`,
-      employeeId: `EMP${100 + newEmployees.length}`,
-      firstName: `New${i + 1}`,
-      lastName: 'Employee',
-      email: `new.employee${i + 1}@company.com`,
-      department: i % 2 === 0 ? 'Engineering' : 'Marketing',
-      position: i % 2 === 0 ? 'Developer' : 'Marketing Specialist',
-      status: 'active' as 'active' | 'inactive' | 'onLeave',
-      hireDate: new Date().toISOString(),
-      managerId: null,
-      mentorId: null,
-      notes: 'Mock employee',
-      projectAssignments: [],
-    });
-  }
-  
-  setEmployees(newEmployees);
-};
+import { supabase } from '@/lib/supabase';
 
 const TalentPool = () => {
+  const { toast } = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
-  
-  React.useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        // In a real application, we would use the API to fetch data
-        // const data = await api.employees.getAll();
-        
-        // For now, we'll use mock data with a delay to simulate loading
-        setTimeout(() => {
-          setEmployees(mockEmployees);
-          setIsLoading(false);
-        }, 1000);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load talent pool data",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-      }
-    };
-    
+  const [error, setError] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [uploadType, setUploadType] = useState<'competency' | 'retention' | 'ilbam'>('competency');
+  const [isUploading, setIsUploading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  useEffect(() => {
     fetchEmployees();
   }, []);
 
-  const filteredEmployees = employees.filter(employee => 
-    employee.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    setIsUploadDialogOpen(false);
-    
+  const fetchEmployees = async () => {
+    setIsLoading(true);
     try {
-      // Show loading toast
+      const employees = await api.employees.getAll();
+      setEmployees(employees);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching employees:', err);
+      setError('Failed to load employees. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) {
       toast({
-        title: "Processing...",
-        description: "Uploading and processing talent pool data"
+        title: "No file selected",
+        description: "Please select a file to upload.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      let result;
       
-      // Mock API call to process the file
-      setTimeout(() => {
+      switch (uploadType) {
+        case 'competency':
+          result = await api.files.uploadCompetencyMatrix(file);
+          break;
+        case 'retention':
+          result = await api.files.uploadRetentionMatrix(file);
+          break;
+        case 'ilbam':
+          result = await api.files.uploadILBAMTalentPool(file);
+          break;
+      }
+      
+      if (result.success) {
         toast({
           title: "Upload successful",
-          description: "Talent pool data has been updated"
+          description: result.message,
         });
         
-        // Add a few more fake employees to simulate data import
-        addMockEmployees();
-      }, 2000);
+        // Refresh employee data
+        fetchEmployees();
+        
+        // Reset file input
+        setFile(null);
+        const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      toast({
+        title: "Upload failed",
+        description: err.message || "There was an error uploading your file.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteEmployee = async (employeeId: string) => {
+    try {
+      // Delete employee from Supabase
+      const { error } = await supabase
+        .from('employees')
+        .delete()
+        .eq('id', employeeId);
+        
+      if (error) throw error;
       
-    } catch (error) {
+      // Update local state
+      const newEmployees = employees.filter(emp => emp.id !== employeeId);
+      setEmployees(newEmployees);
+      
       toast({
-        title: "Error",
-        description: "An error occurred while processing the file",
-        variant: "destructive"
+        title: "Employee deleted",
+        description: "The employee has been removed from the talent pool.",
+      });
+    } catch (err: any) {
+      console.error('Delete error:', err);
+      toast({
+        title: "Delete failed",
+        description: err.message || "There was an error deleting the employee.",
+        variant: "destructive",
       });
     }
   };
 
-  const exportTalentPoolData = () => {
-    toast({
-      title: "Export started",
-      description: "Talent pool data is being exported to Excel"
-    });
-    
-    // Mock export functionality
-    setTimeout(() => {
-      toast({
-        title: "Export complete",
-        description: "Talent pool data has been exported to Excel"
-      });
-    }, 2000);
-  };
+  // Filter employees based on search term and filters
+  const filteredEmployees = employees.filter(employee => {
+    const matchesSearch = 
+      searchTerm === '' || 
+      employee.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.position.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    const matchesDepartment = 
+      departmentFilter === 'all' || 
+      employee.department === departmentFilter;
+      
+    const matchesStatus = 
+      statusFilter === 'all' || 
+      employee.status === statusFilter;
+      
+    return matchesSearch && matchesDepartment && matchesStatus;
+  });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'inactive': return 'bg-gray-500';
-      case 'onLeave': return 'bg-yellow-500';
-      default: return 'bg-gray-500';
-    }
-  };
+  // Get unique departments for filter
+  const departments = ['all', ...new Set(employees.map(emp => emp.department))];
 
   return (
-    <Layout>
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Talent Pool</h1>
-            <p className="text-muted-foreground">
-              Manage and analyze organizational talent data
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={exportTalentPoolData}>
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-            <Button onClick={() => setIsUploadDialogOpen(true)}>
-              <Upload className="mr-2 h-4 w-4" />
-              Upload ILBAM Data
-            </Button>
-          </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Talent Pool</h1>
+          <p className="text-muted-foreground">
+            Manage your organization's talent pool and upload matrices
+          </p>
         </div>
         
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex justify-between items-center">
-              <CardTitle className="flex items-center gap-2">
-                <FileSpreadsheet className="h-5 w-5" />
-                <span>Talent Database</span>
-              </CardTitle>
-              <div className="relative w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Data
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Upload Data</DialogTitle>
+              <DialogDescription>
+                Upload competency matrices, retention data, or ILBAM talent pool information.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="upload-type">Data Type</Label>
+                <Select 
+                  value={uploadType} 
+                  onValueChange={(value) => setUploadType(value as any)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select data type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="competency">Competency Matrix</SelectItem>
+                    <SelectItem value="retention">Retention Matrix</SelectItem>
+                    <SelectItem value="ilbam">ILBAM Talent Pool</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="file-upload">File</Label>
                 <Input
-                  type="search"
-                  placeholder="Search employees..."
-                  className="pl-8 w-full"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  id="file-upload"
+                  type="file"
+                  accept=".csv,.xlsx,.xls"
+                  onChange={handleFileChange}
                 />
+                <p className="text-sm text-muted-foreground">
+                  Accepted formats: CSV, Excel (.xlsx, .xls)
+                </p>
               </div>
+              
+              {uploadType === 'competency' && (
+                <Alert>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  <AlertDescription>
+                    Competency matrix should include employee ID, skill names, and ratings (0-5).
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {uploadType === 'retention' && (
+                <Alert>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  <AlertDescription>
+                    Retention matrix should include employee ID and risk factors with ratings.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {uploadType === 'ilbam' && (
+                <Alert>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  <AlertDescription>
+                    ILBAM data should include employee details in the standard ILBAM format.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
-            <CardDescription>
-              {isLoading ? 'Loading data...' : `${filteredEmployees.length} employees in the talent pool`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="text-lg">Loading talent pool data...</div>
-              </div>
-            ) : (
+            
+            <DialogFooter>
+              <Button 
+                onClick={handleUpload} 
+                disabled={!file || isUploading}
+              >
+                {isUploading ? "Uploading..." : "Upload"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Employee Database</CardTitle>
+          <CardDescription>
+            View and manage all employees in your talent pool
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <Input
+                placeholder="Search employees..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex gap-2">
+              <Select 
+                value={departmentFilter} 
+                onValueChange={setDepartmentFilter}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {departments.filter(d => d !== 'all').map(dept => (
+                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select 
+                value={statusFilter} 
+                onValueChange={setStatusFilter}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="onLeave">On Leave</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          {isLoading ? (
+            <div className="text-center py-8">Loading employees...</div>
+          ) : filteredEmployees.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No employees found matching your criteria.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Employee ID</TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead>Department</TableHead>
                     <TableHead>Position</TableHead>
+                    <TableHead>Department</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Projects</TableHead>
+                    <TableHead>Hire Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredEmployees.map((employee) => (
                     <TableRow key={employee.id}>
-                      <TableCell className="font-medium">{employee.employeeId}</TableCell>
-                      <TableCell>{employee.firstName} {employee.lastName}</TableCell>
-                      <TableCell>{employee.department}</TableCell>
+                      <TableCell className="font-medium">
+                        {employee.firstName} {employee.lastName}
+                      </TableCell>
                       <TableCell>{employee.position}</TableCell>
+                      <TableCell>{employee.department}</TableCell>
                       <TableCell>
-                        <Badge className={`${getStatusColor(employee.status)} text-white capitalize`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          employee.status === 'active' ? 'bg-green-100 text-green-800' :
+                          employee.status === 'inactive' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
                           {employee.status}
-                        </Badge>
+                        </span>
                       </TableCell>
-                      <TableCell>
-                        {employee.projectAssignments.length}
-                      </TableCell>
+                      <TableCell>{new Date(employee.hireDate).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setSelectedEmployee(employee);
-                              setIsDetailDialogOpen(true);
-                            }}
-                            title="View details"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              toast({
-                                title: "Competency Matrix",
-                                description: `Viewing competency matrix for ${employee.firstName} ${employee.lastName}`
-                              });
-                            }}
-                            title="View competency matrix"
-                          >
-                            <FileText className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Confirm Deletion</DialogTitle>
+                              <DialogDescription>
+                                Are you sure you want to delete {employee.firstName} {employee.lastName} from the talent pool?
+                                This action cannot be undone.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                              <Button variant="outline">Cancel</Button>
+                              <Button 
+                                variant="destructive" 
+                                onClick={() => handleDeleteEmployee(employee.id)}
+                              >
+                                Delete
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            )}
-          </CardContent>
-          <CardFooter className="border-t pt-4 flex justify-between">
-            <div className="text-sm text-muted-foreground">
-              Last updated: April 3, 2025
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={exportTalentPoolData}>
-                <FileDown className="mr-2 h-4 w-4" />
-                Export to Excel
-              </Button>
-            </div>
-          </CardFooter>
-        </Card>
-      </div>
-
-      {/* Upload Dialog */}
-      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Upload ILBAM Data</DialogTitle>
-            <DialogDescription>
-              Upload an Excel file with the ILBAM talent pool data. The system will process and import the data.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="file-upload" className="text-sm font-medium">
-                Select File (Excel format)
-              </label>
-              <Input
-                id="file-upload"
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleFileUpload}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => document.getElementById('file-upload')?.click()}>
-              Upload
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Employee Detail Dialog */}
-      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Employee Details</DialogTitle>
-            <DialogDescription>
-              Detailed information about {selectedEmployee?.firstName} {selectedEmployee?.lastName}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedEmployee && (
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium">Personal Information</h3>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <div className="text-sm font-medium">Employee ID:</div>
-                    <div className="text-sm">{selectedEmployee.employeeId}</div>
-                    <div className="text-sm font-medium">Full Name:</div>
-                    <div className="text-sm">{selectedEmployee.firstName} {selectedEmployee.lastName}</div>
-                    <div className="text-sm font-medium">Email:</div>
-                    <div className="text-sm">{selectedEmployee.email}</div>
-                    <div className="text-sm font-medium">Hire Date:</div>
-                    <div className="text-sm">{new Date(selectedEmployee.hireDate).toLocaleDateString()}</div>
-                    <div className="text-sm font-medium">Status:</div>
-                    <div className="text-sm capitalize">{selectedEmployee.status}</div>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium">Position Information</h3>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <div className="text-sm font-medium">Department:</div>
-                    <div className="text-sm">{selectedEmployee.department}</div>
-                    <div className="text-sm font-medium">Position:</div>
-                    <div className="text-sm">{selectedEmployee.position}</div>
-                    <div className="text-sm font-medium">Manager:</div>
-                    <div className="text-sm">{selectedEmployee.managerId ? "Assigned" : "None"}</div>
-                    <div className="text-sm font-medium">Mentor:</div>
-                    <div className="text-sm">{selectedEmployee.mentorId ? "Assigned" : "None"}</div>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium">Project Assignments</h3>
-                  <div className="mt-2">
-                    {selectedEmployee.projectAssignments.length > 0 ? (
-                      <ul className="space-y-2">
-                        {selectedEmployee.projectAssignments.map((assignment) => (
-                          <li key={assignment.id} className="text-sm border rounded p-2">
-                            <div className="font-medium">{assignment.projectName}</div>
-                            <div className="text-xs text-muted-foreground">Role: {assignment.role}</div>
-                            <div className="text-xs text-muted-foreground">Start: {new Date(assignment.startDate).toLocaleDateString()}</div>
-                            <div className="text-xs text-muted-foreground">Utilization: {assignment.utilizationPercentage}%</div>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div className="text-sm text-muted-foreground">No project assignments</div>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium">Notes</h3>
-                  <div className="mt-2 text-sm border rounded p-2 min-h-[100px]">
-                    {selectedEmployee.notes || "No notes available for this employee."}
-                  </div>
-                </div>
-              </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
-              Close
-            </Button>
-            <Button onClick={() => {
-              setIsDetailDialogOpen(false);
-              toast({
-                title: "Edit mode",
-                description: "This would open the employee edit form in a real application"
-              });
-            }}>
-              Edit
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </Layout>
+        </CardContent>
+        
+        <CardFooter className="flex justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {filteredEmployees.length} of {employees.length} employees
+          </div>
+          <Button variant="outline" onClick={fetchEmployees}>
+            Refresh Data
+          </Button>
+        </CardFooter>
+      </Card>
+      
+      <Tabs defaultValue="competency">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="competency">Competency Matrices</TabsTrigger>
+          <TabsTrigger value="retention">Retention Matrices</TabsTrigger>
+          <TabsTrigger value="ilbam">ILBAM Data</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="competency" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Competency Matrices</CardTitle>
+              <CardDescription>
+                View and analyze employee competency matrices
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center py-8 text-muted-foreground">
+                Select an employee to view their competency matrix.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="retention" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Retention Matrices</CardTitle>
+              <CardDescription>
+                View and analyze employee retention risk factors
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center py-8 text-muted-foreground">
+                Select an employee to view their retention matrix.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="ilbam" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>ILBAM Data</CardTitle>
+              <CardDescription>
+                View and analyze ILBAM talent pool data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center py-8 text-muted-foreground">
+                ILBAM data visualization coming soon.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

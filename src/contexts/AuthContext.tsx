@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw userError;
           }
 
-          const role = userData?.role as UserRole || 'manager';
+          const role = (userData?.role as UserRole) || 'manager';
 
           const user: User = {
             id: data.session.user.id,
@@ -110,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               throw userError;
             }
 
-            const role = userData?.role as UserRole || 'manager';
+            const role = (userData?.role as UserRole) || 'manager';
 
             const user: User = {
               id: session.user.id,

@@ -43,18 +43,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (data?.session) {
-          // Get user profile data from your users table
-          const { data: userData, error: userError } = await supabase
+          // Get user profile data from your profiles table
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', data.session.user.id)
             .single();
 
-          if (userError) {
-            console.warn('User profile not found:', userError);
+          if (profileError) {
+            console.warn('User profile not found:', profileError);
           }
 
-          const profile = userData as Profile | null;
+          const profile = profileData as Profile | null;
           const role = profile?.role || 'manager';
 
           const user: User = {
@@ -99,17 +99,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // User signed in or token refreshed
           try {
             // Get user profile data
-            const { data: userData, error: userError } = await supabase
+            const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
               .single();
 
-            if (userError) {
-              console.warn('User profile not found:', userError);
+            if (profileError) {
+              console.warn('User profile not found:', profileError);
             }
 
-            const profile = userData as Profile | null;
+            const profile = profileData as Profile | null;
             const role = profile?.role || 'manager';
 
             const user: User = {

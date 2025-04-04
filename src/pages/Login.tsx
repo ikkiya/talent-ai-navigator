@@ -41,6 +41,8 @@ const Login = () => {
     setIsSubmitting(true);
     try {
       await login(email, password);
+    } catch (error) {
+      console.error('Login form error:', error);
     } finally {
       setIsSubmitting(false);
     }

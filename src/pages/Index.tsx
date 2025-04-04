@@ -2,12 +2,19 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
+import { isSupabaseConfigured } from '@/lib/supabase';
 
 const Index = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Redirect to dashboard or login
+    // Always redirect to login when Supabase is not configured
+    if (!isSupabaseConfigured()) {
+      navigate('/login');
+      return;
+    }
+    
+    // Redirect to dashboard or login based on token
     const token = localStorage.getItem('token');
     if (token) {
       navigate('/dashboard');

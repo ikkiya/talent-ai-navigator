@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +18,6 @@ const TalentPool = () => {
   const [retentionFile, setRetentionFile] = useState<File | null>(null);
   const [ilbamFile, setIlbamFile] = useState<File | null>(null);
   
-  // For manual entry
   const [manualEmployees, setManualEmployees] = useState<Employee[]>([]);
   const [newEmployee, setNewEmployee] = useState({
     id: '',
@@ -96,7 +94,6 @@ const TalentPool = () => {
           description: result.message,
         });
         
-        // Reset file input
         switch (uploadType) {
           case 'competency':
             setCompetencyFile(null);
@@ -128,7 +125,6 @@ const TalentPool = () => {
   };
   
   const handleManualAdd = () => {
-    // Validation
     if (!newEmployee.employeeId || !newEmployee.firstName || !newEmployee.lastName || !newEmployee.email) {
       toast({
         title: "Validation Error",
@@ -144,11 +140,9 @@ const TalentPool = () => {
       projectAssignments: [],
     };
     
-    // Add to state
     const updatedEmployees = [...manualEmployees, employee];
     setManualEmployees(updatedEmployees);
     
-    // Reset form
     setNewEmployee({
       id: '',
       employeeId: '',
@@ -165,6 +159,14 @@ const TalentPool = () => {
       title: "Employee Added",
       description: "Employee has been added to the talent pool",
     });
+  };
+  
+  const handleStatusChange = (employeeId: string, status: "active" | "inactive" | "onLeave") => {
+    setManualEmployees(prevEmployees => prevEmployees.map(employee => 
+      employee.id === employeeId 
+        ? { ...employee, status }
+        : employee
+    ));
   };
   
   const getFileStatus = (file: File | null) => {

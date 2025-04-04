@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
@@ -36,7 +35,7 @@ const ProjectItem = ({ project }: { project: Project }) => {
           <Badge 
             variant={
               project.status === 'active' ? 'default' : 
-              project.status === 'completed' ? 'success' : 
+              project.status === 'completed' ? 'secondary' : 
               project.status === 'planning' ? 'secondary' : 
               'outline'
             }
@@ -254,7 +253,7 @@ const Projects = () => {
                           <Badge 
                             variant={
                               project.status === 'active' ? 'default' : 
-                              project.status === 'completed' ? 'success' : 
+                              project.status === 'completed' ? 'secondary' : 
                               project.status === 'planning' ? 'secondary' : 
                               'outline'
                             }

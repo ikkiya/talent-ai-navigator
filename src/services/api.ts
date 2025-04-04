@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Employee, Project, TeamRecommendation } from '@/types';
 
 // Real API service that connects to Supabase

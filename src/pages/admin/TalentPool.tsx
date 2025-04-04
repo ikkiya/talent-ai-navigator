@@ -29,6 +29,7 @@ const mockEmployees: Employee[] = [
     projectAssignments: [
       {
         id: '1',
+        projectId: 'proj1',
         projectName: 'Dashboard Redesign',
         role: 'Lead Developer',
         startDate: '2024-12-01T00:00:00Z',
@@ -53,6 +54,7 @@ const mockEmployees: Employee[] = [
     projectAssignments: [
       {
         id: '2',
+        projectId: 'proj1',
         projectName: 'Dashboard Redesign',
         role: 'Product Manager',
         startDate: '2024-12-01T00:00:00Z',
@@ -61,6 +63,7 @@ const mockEmployees: Employee[] = [
       },
       {
         id: '3',
+        projectId: 'proj2',
         projectName: 'Mobile App v2',
         role: 'Product Owner',
         startDate: '2025-01-15T00:00:00Z',
@@ -85,6 +88,7 @@ const mockEmployees: Employee[] = [
     projectAssignments: [
       {
         id: '4',
+        projectId: 'proj1',
         projectName: 'Dashboard Redesign',
         role: 'Engineering Manager',
         startDate: '2024-12-01T00:00:00Z',
@@ -93,6 +97,7 @@ const mockEmployees: Employee[] = [
       },
       {
         id: '5',
+        projectId: 'proj2',
         projectName: 'Mobile App v2',
         role: 'Technical Advisor',
         startDate: '2025-01-15T00:00:00Z',
@@ -117,6 +122,7 @@ const mockEmployees: Employee[] = [
     projectAssignments: [
       {
         id: '6',
+        projectId: 'proj1',
         projectName: 'Dashboard Redesign',
         role: 'Lead Designer',
         startDate: '2024-12-01T00:00:00Z',
@@ -141,6 +147,7 @@ const mockEmployees: Employee[] = [
     projectAssignments: [
       {
         id: '7',
+        projectId: 'proj2',
         projectName: 'Mobile App v2',
         role: 'Principal Engineer',
         startDate: '2025-01-15T00:00:00Z',
@@ -251,7 +258,7 @@ const TalentPool = () => {
           email: `new.employee${i + 1}@company.com`,
           department: i % 2 === 0 ? 'Engineering' : 'Marketing',
           position: i % 2 === 0 ? 'Developer' : 'Marketing Specialist',
-          status: 'active',
+          status: 'active' as 'active' | 'inactive' | 'onLeave',
           hireDate: new Date().toISOString(),
           managerId: null,
           mentorId: null,

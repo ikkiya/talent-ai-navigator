@@ -1,10 +1,10 @@
 
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/types/supabase'
+import type { Database } from '@/integrations/supabase/types'
 
 // Get environment variables with fallbacks for development
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://gitnpdgfqzovzvivscme.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpdG5wZGdmcXpvdnp2aXZzY21lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3NjgwODcsImV4cCI6MjA1OTM0NDA4N30._YLUYQz30ffm2FODsE5hz4YezbVxYI-xJLjnblSkCRQ';
 
 // Check if we have the required configuration
 if (!supabaseUrl || !supabaseAnonKey) {

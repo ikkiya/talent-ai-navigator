@@ -1,4 +1,5 @@
 
+
 export type Json =
   | string
   | number
@@ -165,6 +166,29 @@ export interface Database {
           factors?: Json
           risk_score?: number
           last_updated?: string
+        }
+      }
+      profiles: {
+        Row: {
+          id: string
+          first_name: string | null
+          last_name: string | null
+          avatar_url: string | null
+          role: string
+        }
+        Insert: {
+          id: string
+          first_name?: string | null
+          last_name?: string | null
+          avatar_url?: string | null
+          role?: string
+        }
+        Update: {
+          id?: string
+          first_name?: string | null
+          last_name?: string | null
+          avatar_url?: string | null
+          role?: string
         }
       }
     }

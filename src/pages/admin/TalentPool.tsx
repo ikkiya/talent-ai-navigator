@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -188,6 +187,30 @@ const mockEmployees: Employee[] = [
   }
 ];
 
+const addMockEmployees = () => {
+  const newEmployees = [...mockEmployees];
+  
+  for (let i = 0; i < 5; i++) {
+    newEmployees.push({
+      id: `mock-${Date.now()}-${i}`,
+      employeeId: `EMP${100 + newEmployees.length}`,
+      firstName: `New${i + 1}`,
+      lastName: 'Employee',
+      email: `new.employee${i + 1}@company.com`,
+      department: i % 2 === 0 ? 'Engineering' : 'Marketing',
+      position: i % 2 === 0 ? 'Developer' : 'Marketing Specialist',
+      status: 'active' as 'active' | 'inactive' | 'onLeave',
+      hireDate: new Date().toISOString(),
+      managerId: null,
+      mentorId: null,
+      notes: 'Mock employee',
+      projectAssignments: [],
+    });
+  }
+  
+  setEmployees(newEmployees);
+};
+
 const TalentPool = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -196,7 +219,6 @@ const TalentPool = () => {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   
-  // Mock loading employees on component mount
   React.useEffect(() => {
     const fetchEmployees = async () => {
       try {
@@ -250,21 +272,7 @@ const TalentPool = () => {
         });
         
         // Add a few more fake employees to simulate data import
-        setEmployees([...mockEmployees, ...Array(3).fill(null).map((_, i) => ({
-          id: `${mockEmployees.length + i + 1}`,
-          employeeId: `EMP00${mockEmployees.length + i + 1}`,
-          firstName: `New`,
-          lastName: `Employee ${i + 1}`,
-          email: `new.employee${i + 1}@company.com`,
-          department: i % 2 === 0 ? 'Engineering' : 'Marketing',
-          position: i % 2 === 0 ? 'Developer' : 'Marketing Specialist',
-          status: 'active' as 'active' | 'inactive' | 'onLeave',
-          hireDate: new Date().toISOString(),
-          managerId: null,
-          mentorId: null,
-          notes: 'Newly imported employee data',
-          projectAssignments: []
-        }))]);
+        addMockEmployees();
       }, 2000);
       
     } catch (error) {

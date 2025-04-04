@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthState, User, UserRole } from '@/types';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
@@ -24,17 +24,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   useEffect(() => {
-    // Check if Supabase is configured before attempting to use it
-    if (!isSupabaseConfigured()) {
-      setAuth(prev => ({
-        ...prev,
-        isLoading: false,
-        error: 'Supabase is not configured. Please check your environment variables.'
-      }));
-      console.error('Supabase is not configured. Please check your environment variables.');
-      return;
-    }
-
     // Check for an active session on page load
     const checkSession = async () => {
       try {
@@ -52,8 +41,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .eq('id', data.session.user.id)
             .single();
 
-          if (userError) {
-            throw userError;
+          if (userError && userError.code !== 'PGRST116') {
+            console.warn('User profile not found, using default data');
           }
 
           const role = (userData?.role as UserRole) || 'manager';
@@ -107,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .single();
 
             if (userError && userError.code !== 'PGRST116') {
-              throw userError;
+              console.warn('User profile not found, using default data');
             }
 
             const role = (userData?.role as UserRole) || 'manager';
@@ -153,11 +142,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      if (!isSupabaseConfigured()) {
-        throw new Error('Supabase is not configured. Please check your environment variables.');
-      }
-
       setAuth(prev => ({ ...prev, isLoading: true, error: null }));
+      
+      console.log('Attempting login with:', { email });
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -187,18 +174,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      if (!isSupabaseConfigured()) {
-        // Just clear local state if Supabase isn't configured
-        setAuth({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: null,
-        });
-        return;
-      }
-
       await supabase.auth.signOut();
       // Auth state will be updated by the onAuthStateChange listener
     } catch (error) {

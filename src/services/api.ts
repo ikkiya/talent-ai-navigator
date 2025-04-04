@@ -43,7 +43,7 @@ export const api = {
                   start_date,
                   end_date,
                   utilization_percentage,
-                  projects(name)
+                  projects:project_id(name)
                 `)
                 .eq('employee_id', employee.id);
                 

@@ -9,11 +9,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const { auth, login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -23,6 +25,52 @@ const Login = () => {
       navigate('/dashboard');
     }
   }, [auth.isAuthenticated, navigate]);
+
+  const handleDemoLogin = async (demoEmail: string) => {
+    if (isSubmitting) return;
+    
+    setEmail(demoEmail);
+    setPassword('password123');
+    
+    try {
+      setIsSubmitting(true);
+      setLoginError(null);
+      
+      console.log(`Logging in with demo account: ${demoEmail}`);
+      
+      // Use direct Supabase auth to debug the issue
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: 'password123',
+      });
+      
+      if (error) {
+        console.error('Demo login error:', error);
+        setLoginError(error.message);
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else if (data?.user) {
+        toast({
+          title: "Success!",
+          description: "Logged in successfully",
+        });
+        // The auth context will handle the redirect
+      }
+    } catch (error: any) {
+      console.error('Demo login catch error:', error);
+      setLoginError(error.message || 'An unexpected error occurred');
+      toast({
+        title: "Login Error",
+        description: error.message || "Failed to login. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,10 +87,40 @@ const Login = () => {
     }
     
     setIsSubmitting(true);
+    setLoginError(null);
+    
     try {
-      await login(email, password);
-    } catch (error) {
-      console.error('Login form error:', error);
+      console.log(`Attempting login with email: ${email}`);
+      
+      // Use direct Supabase auth to debug the issue
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('Login error:', error);
+        setLoginError(error.message);
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else if (data?.user) {
+        toast({
+          title: "Success!",
+          description: "Logged in successfully",
+        });
+        // The auth context will handle the redirect
+      }
+    } catch (error: any) {
+      console.error('Login catch error:', error);
+      setLoginError(error.message || 'An unexpected error occurred');
+      toast({
+        title: "Login Error",
+        description: error.message || "Failed to login. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -72,9 +150,9 @@ const Login = () => {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">              
-              {auth.error && (
+              {(auth.error || loginError) && (
                 <Alert variant="destructive">
-                  <AlertDescription>{auth.error}</AlertDescription>
+                  <AlertDescription>{auth.error || loginError}</AlertDescription>
                 </Alert>
               )}
               
@@ -107,13 +185,37 @@ const Login = () => {
                 />
               </div>
               
-              <div className="text-sm text-muted-foreground">
-                <p>Demo Accounts:</p>
-                <ul className="list-disc list-inside text-xs space-y-1 mt-1">
-                  <li>Email: admin@company.com, Password: password123</li>
-                  <li>Email: manager@company.com, Password: password123</li>
-                  <li>Email: mentor@company.com, Password: password123</li>
-                </ul>
+              <div className="text-sm">
+                <p className="font-medium">Demo Accounts:</p>
+                <div className="grid gap-2 mt-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="text-xs justify-start h-8"
+                    onClick={() => handleDemoLogin('admin@company.com')}
+                    disabled={isSubmitting}
+                  >
+                    admin@company.com (Admin)
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="text-xs justify-start h-8"
+                    onClick={() => handleDemoLogin('manager@company.com')}
+                    disabled={isSubmitting}
+                  >
+                    manager@company.com (Manager)
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="text-xs justify-start h-8"
+                    onClick={() => handleDemoLogin('mentor@company.com')}
+                    disabled={isSubmitting}
+                  >
+                    mentor@company.com (Mentor)
+                  </Button>
+                </div>
               </div>
             </CardContent>
             

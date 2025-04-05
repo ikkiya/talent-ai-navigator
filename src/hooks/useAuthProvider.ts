@@ -82,6 +82,8 @@ export function useAuthProvider() {
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
         if (session) {
           // User signed in or token refreshed
           try {
@@ -155,6 +157,8 @@ export function useAuthProvider() {
       }
 
       // Auth state will be updated by the onAuthStateChange listener
+      localStorage.setItem('token', data.session?.access_token || '');
+      return { success: true };
     } catch (error: any) {
       console.error('Login error:', error);
       setAuth(prev => ({
@@ -163,17 +167,14 @@ export function useAuthProvider() {
         error: error.message || 'Failed to sign in',
       }));
       
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid credentials. Please try again.",
-        variant: "destructive",
-      });
+      return { success: false, error };
     }
   };
 
   const logout = async () => {
     try {
       await supabase.auth.signOut();
+      localStorage.removeItem('token');
       // Auth state will be updated by the onAuthStateChange listener
     } catch (error: any) {
       console.error('Logout error:', error);

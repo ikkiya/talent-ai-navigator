@@ -124,15 +124,20 @@ const Projects = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        {project.teamMembers?.slice(0, 3).map((memberId) => {
-                          const member = employees.find((emp) => emp.id === memberId);
+                        {/* Fix the type error by checking if teamMembers is an array of strings (IDs) */}
+                        {Array.isArray(project.teamMembers) && project.teamMembers.slice(0, 3).map((memberId) => {
+                          // Check if memberId is a string (ID) and find the employee by ID
+                          const member = typeof memberId === 'string' ? 
+                            employees.find((emp) => emp.id === memberId) : 
+                            memberId; // If it's already an Employee object
+                            
                           return member ? (
                             <Avatar key={member.id} className="h-6 w-6">
                               <AvatarFallback>{member.firstName[0]}{member.lastName[0]}</AvatarFallback>
                             </Avatar>
                           ) : null;
                         })}
-                        {project.teamMembers?.length > 3 && (
+                        {Array.isArray(project.teamMembers) && project.teamMembers.length > 3 && (
                           <span className="text-sm text-muted-foreground">
                             +{project.teamMembers.length - 3}
                           </span>

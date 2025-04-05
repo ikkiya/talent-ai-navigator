@@ -173,8 +173,8 @@ const TalentPool = () => {
       searchRegex.test(employee.firstName) || searchRegex.test(employee.lastName) || searchRegex.test(employee.email);
 
     const matchesFilters =
-      (filters.department === '' || employee.department === filters.department) &&
-      (filters.status === '' || employee.status === filters.status);
+      (filters.department === '' || filters.department === 'all-departments' || employee.department === filters.department) &&
+      (filters.status === '' || filters.status === 'all-statuses' || employee.status === filters.status);
 
     return matchesSearch && matchesFilters;
   });
@@ -212,7 +212,7 @@ const TalentPool = () => {
                     <SelectValue placeholder="Filter by Department" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Departments</SelectItem>
+                    <SelectItem value="all-departments">All Departments</SelectItem>
                     {Array.from(new Set(employees.map((emp) => emp.department))).map((dept) => (
                       <SelectItem key={dept} value={dept}>
                         {dept}
@@ -225,7 +225,7 @@ const TalentPool = () => {
                     <SelectValue placeholder="Filter by Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all-statuses">All Statuses</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="inactive">Inactive</SelectItem>
                     <SelectItem value="onLeave">On Leave</SelectItem>

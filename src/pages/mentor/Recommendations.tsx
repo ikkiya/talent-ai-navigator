@@ -283,7 +283,7 @@ const Recommendations = () => {
                 <Select 
                   value={selectedProjectId || ''} 
                   onValueChange={(value) => {
-                    setSelectedProjectId(value);
+                    setSelectedProjectId(value === 'no-project' ? null : value);
                     setAcceptedEmployees([]);
                   }}
                 >
@@ -291,6 +291,7 @@ const Recommendations = () => {
                     <SelectValue placeholder="Select a project" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="no-project">Select a project</SelectItem>
                     {projects.map(project => (
                       <SelectItem key={project.id} value={project.id}>
                         {project.name}

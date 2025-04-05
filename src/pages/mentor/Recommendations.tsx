@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/services/api';
+import { Employee } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -7,9 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/services/api';
-import { Project, TeamRecommendation, Employee } from '@/types';
 import { UserCheck, UserX, Sparkles, Clipboard, Check, Info } from 'lucide-react';
 
 const RecommendedEmployee = ({ 
@@ -171,6 +172,16 @@ const AcceptedEmployee = ({
 };
 
 const Recommendations = () => {
+  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery<Employee[]>({
+    queryKey: ['employees'],
+    queryFn: api.employees.getAll,
+  });
+  
+  const { data: recommendations = [], isLoading: isLoadingRecommendations } = useQuery({
+    queryKey: ['recommendations'],
+    queryFn: api.recommendations.getAll,
+  });
+  
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [acceptedEmployees, setAcceptedEmployees] = useState<Employee[]>([]);
   const { toast } = useToast();

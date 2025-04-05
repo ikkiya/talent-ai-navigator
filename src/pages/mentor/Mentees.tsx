@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/services/api';
+import { Employee } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,9 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/services/api';
-import { Employee } from '@/types';
 import { UserSearch, UserCheck, PlusCircle, Link, MessageSquare, ChevronRight, FileEdit, BarChart, Calendar, Filter, Search } from 'lucide-react';
 
 const MenteeCard = ({ 
@@ -129,6 +130,7 @@ const PotentialMenteeCard = ({
 };
 
 const Mentees = () => {
+  const { auth } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     department: false,
@@ -137,12 +139,12 @@ const Mentees = () => {
   });
   const { toast } = useToast();
   
-  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
+  const { data: employees = [], isLoading } = useQuery<Employee[]>({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });
   
-  const myMentees = employees.filter(e => e.mentorId === 'current-user-id') || [];
+  const mentees = employees.filter(emp => emp.mentorId === auth.user?.id) || [];
   
   const potentialMentees = employees.filter(e => !e.mentorId) || [];
   
@@ -178,7 +180,7 @@ const Mentees = () => {
     });
   };
   
-  const filteredMentees = myMentees.filter(mentee => 
+  const filteredMentees = mentees.filter(mentee => 
     `${mentee.firstName} ${mentee.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mentee.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mentee.position.toLowerCase().includes(searchTerm.toLowerCase())
@@ -245,7 +247,7 @@ const Mentees = () => {
               <Tabs defaultValue="current" className="space-y-4">
                 <TabsList>
                   <TabsTrigger value="current">
-                    My Mentees ({myMentees.length})
+                    My Mentees ({mentees.length})
                   </TabsTrigger>
                   <TabsTrigger value="potential">
                     Potential Mentees ({potentialMentees.length})
@@ -253,7 +255,7 @@ const Mentees = () => {
                 </TabsList>
                 
                 <TabsContent value="current" className="space-y-4">
-                  {isLoadingEmployees ? (
+                  {isLoading ? (
                     <div className="text-center py-12 border rounded-md bg-muted/30">
                       <p className="text-muted-foreground">
                         Loading mentees...
@@ -263,7 +265,7 @@ const Mentees = () => {
                     <>
                       <div className="flex justify-between items-center">
                         <p className="text-sm text-muted-foreground">
-                          Showing {filteredMentees.length} of {myMentees.length} mentees
+                          Showing {filteredMentees.length} of {mentees.length} mentees
                         </p>
                         
                         <div className="flex gap-2 items-center">
@@ -303,7 +305,7 @@ const Mentees = () => {
                 </TabsContent>
                 
                 <TabsContent value="potential" className="space-y-4">
-                  {isLoadingEmployees ? (
+                  {isLoading ? (
                     <div className="text-center py-12 border rounded-md bg-muted/30">
                       <p className="text-muted-foreground">
                         Loading potential mentees...

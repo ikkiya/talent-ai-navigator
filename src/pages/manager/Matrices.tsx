@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/services/api';
+import { Employee } from '@/types';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,9 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { FileSpreadsheet, Upload, CheckCircle2, AlertCircle } from 'lucide-react';
-import { api } from '@/services/api';
-import { useQuery } from '@tanstack/react-query';
-import { Employee } from '@/types';
 
 const MatrixUploadCard = ({ 
   title, 
@@ -234,12 +234,13 @@ const RetentionMatrixTable = ({ employeeId }: { employeeId?: string }) => {
 const Matrices = () => {
   const [activeTab, setActiveTab] = useState("upload");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const handleCompetencyUpload = async (file: File) => {
     try {
       const result = await api.files.uploadCompetencyMatrix(file);
       if (result.success) {
-        // Force a refetch of employee data if needed
+        queryClient.invalidateQueries(['employees']);
       }
     } catch (error) {
       toast({
@@ -255,7 +256,7 @@ const Matrices = () => {
     try {
       const result = await api.files.uploadRetentionMatrix(file);
       if (result.success) {
-        // Force a refetch of employee data if needed
+        queryClient.invalidateQueries(['employees']);
       }
     } catch (error) {
       toast({
@@ -265,6 +266,15 @@ const Matrices = () => {
       });
       throw error;
     }
+  };
+  
+  const { data: employees = [], isLoading } = useQuery<Employee[]>({
+    queryKey: ['employees'],
+    queryFn: api.employees.getAll,
+  });
+  
+  const findEmployee = (id: string) => {
+    return employees.find(emp => emp.id === id) || null;
   };
   
   return (

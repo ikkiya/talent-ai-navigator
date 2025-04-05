@@ -12,6 +12,5 @@ export const api = {
   files: filesApi
 };
 
-// Re-export all individual modules for direct imports if needed
-// But rename them to avoid conflicts
+// For backward compatibility with older imports
 export { employeesApi, projectsApi, recommendationsApi, filesApi };

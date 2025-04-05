@@ -6,19 +6,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import { Employee } from '@/types';
+import { Employee, Project } from '@/types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Users, UserCheck, UserMinus, BriefcaseBusiness, BarChart3, ArrowUpRight } from 'lucide-react';
 
 const Dashboard = () => {
   const { auth } = useAuth();
   
-  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
+  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery<Employee[]>({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });
   
-  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery<Project[]>({
     queryKey: ['projects'],
     queryFn: api.projects.getAll,
   });
@@ -46,7 +46,7 @@ const Dashboard = () => {
   }).length || 0;
   
   // Department distribution for pie chart
-  const departmentCount = employees.reduce((acc: Record<string, number>, employee) => {
+  const departmentCount = employees.reduce<Record<string, number>>((acc, employee) => {
     acc[employee.department] = (acc[employee.department] || 0) + 1;
     return acc;
   }, {}) || {};

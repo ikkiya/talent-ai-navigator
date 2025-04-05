@@ -15,7 +15,6 @@ import { Filter, Plus, Search, UserPlus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Employee } from '@/types';
 
-// Function to generate a random employee ID
 const generateEmployeeId = () => {
   return 'EMP' + Math.floor(Math.random() * 9000 + 1000);
 };
@@ -36,7 +35,9 @@ const EmployeeForm = ({
   const [email, setEmail] = useState(initialData?.email || '');
   const [department, setDepartment] = useState(initialData?.department || '');
   const [position, setPosition] = useState(initialData?.position || '');
-  const [status, setStatus] = useState(initialData?.status || 'active');
+  const [status, setStatus] = useState<'active' | 'inactive' | 'onLeave'>(
+    (initialData?.status as 'active' | 'inactive' | 'onLeave') || 'active'
+  );
 
   const handleSubmit = () => {
     onSubmit({
@@ -95,7 +96,10 @@ const EmployeeForm = ({
         </div>
         <div>
           <Label htmlFor="status">Status</Label>
-          <Select value={status} onValueChange={setStatus}>
+          <Select 
+            value={status} 
+            onValueChange={(value: string) => setStatus(value as 'active' | 'inactive' | 'onLeave')}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
@@ -127,7 +131,7 @@ const TalentPool = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: employees = [], isLoading, error } = useQuery({
+  const { data: employees = [], isLoading, error } = useQuery<Employee[]>({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });
@@ -148,7 +152,7 @@ const TalentPool = () => {
         description: `${data.firstName} ${data.lastName} has been added to the talent pool.`,
       });
       setAddDialogOpen(false);
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
     } catch (error) {
       console.error("Error adding employee:", error);
       toast({
@@ -209,7 +213,7 @@ const TalentPool = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">All Departments</SelectItem>
-                    {[...new Set(employees.map((emp) => emp.department))].map((dept) => (
+                    {Array.from(new Set(employees.map((emp) => emp.department))).map((dept) => (
                       <SelectItem key={dept} value={dept}>
                         {dept}
                       </SelectItem>

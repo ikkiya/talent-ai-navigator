@@ -14,13 +14,13 @@ import { useToast } from '@/hooks/use-toast';
 
 const Employees = () => {
   const { toast } = useToast();
-  const { data: employees = [], isLoading: isLoadingEmployees, error } = useQuery({
+  const { data: employees = [], isLoading: isLoadingEmployees, error } = useQuery<Employee[]>({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });
 
   const departmentStats = employees.length > 0 
-    ? employees.reduce((acc: Record<string, number>, employee) => {
+    ? employees.reduce<Record<string, number>>((acc, employee) => {
         acc[employee.department] = (acc[employee.department] || 0) + 1;
         return acc;
       }, {})

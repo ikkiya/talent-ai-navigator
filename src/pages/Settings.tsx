@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -6,11 +8,26 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { Bell, Moon, Eye, Shield, Mail, BellOff } from 'lucide-react';
+import { Bell, Moon, Eye, Shield, Mail, BellOff, Lock, Info } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useAuth } from '@/contexts/AuthContext';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle,
+  DialogClose 
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 const Settings = () => {
+  const { auth, logout } = useAuth();
+  const navigate = useNavigate();
+  
   const [settings, setSettings] = useState({
     notifications: {
       email: true,
@@ -32,15 +49,50 @@ const Settings = () => {
       twoFactorEnabled: false
     }
   });
+
+  const [is2FADialogOpen, setIs2FADialogOpen] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [advanced, setAdvanced] = useState(false);
+  
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('userSettings');
+    if (savedSettings) {
+      setSettings(JSON.parse(savedSettings));
+    }
+  }, []);
+  
+  // Apply dark mode when setting changes
+  useEffect(() => {
+    if (settings.appearance.darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings.appearance.darkMode]);
   
   const updateSetting = (category: keyof typeof settings, setting: string, value: boolean) => {
-    setSettings(prev => ({
-      ...prev,
+    const newSettings = {
+      ...settings,
       [category]: {
-        ...prev[category],
+        ...settings[category],
         [setting]: value
       }
-    }));
+    };
+    
+    setSettings(newSettings);
+    
+    // Save to localStorage
+    localStorage.setItem('userSettings', JSON.stringify(newSettings));
+    
+    // Apply specific settings
+    if (category === 'appearance' && setting === 'darkMode') {
+      if (value) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
     
     toast({
       title: "Setting updated",
@@ -48,7 +100,46 @@ const Settings = () => {
     });
   };
   
-  const [advanced, setAdvanced] = useState(false);
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out."
+      });
+      navigate('/login');
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging out. Please try again.",
+        variant: "destructive"
+      });
+      console.error("Logout error:", error);
+    }
+  };
+  
+  const setup2FA = () => {
+    // In a real app, this would generate a QR code and secret from the backend
+    setIs2FADialogOpen(true);
+  };
+  
+  const verify2FACode = () => {
+    // In a real app, this would verify the code with the backend
+    if (verificationCode.length === 6 && /^\d+$/.test(verificationCode)) {
+      updateSetting('privacy', 'twoFactorEnabled', true);
+      setIs2FADialogOpen(false);
+      toast({
+        title: "2FA Enabled",
+        description: "Two-factor authentication has been successfully set up."
+      });
+    } else {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter a valid 6-digit verification code.",
+        variant: "destructive"
+      });
+    }
+  };
   
   return (
     <Layout>
@@ -355,7 +446,7 @@ const Settings = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => updateSetting('privacy', 'twoFactorEnabled', !settings.privacy.twoFactorEnabled)}
+                        onClick={settings.privacy.twoFactorEnabled ? undefined : setup2FA}
                       >
                         {settings.privacy.twoFactorEnabled ? 'Manage 2FA' : 'Setup 2FA'}
                       </Button>
@@ -369,7 +460,7 @@ const Settings = () => {
                             <p className="font-medium">Current Session</p>
                             <p className="text-sm text-muted-foreground">Started April 3, 2025</p>
                           </div>
-                          <Button variant="destructive" size="sm">
+                          <Button variant="destructive" size="sm" onClick={handleLogout}>
                             Log Out
                           </Button>
                         </div>
@@ -382,6 +473,61 @@ const Settings = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* 2FA Setup Dialog */}
+      <Dialog open={is2FADialogOpen} onOpenChange={setIs2FADialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Setup Two-factor Authentication</DialogTitle>
+            <DialogDescription>
+              Scan this QR code with your authenticator app and enter the verification code below.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="border p-4 bg-white">
+              {/* This would be a QR code in a real app */}
+              <div className="w-48 h-48 bg-gray-200 flex items-center justify-center">
+                <Lock className="h-16 w-16 text-gray-400" />
+                <span className="sr-only">QR Code placeholder</span>
+              </div>
+            </div>
+            
+            <div className="w-full space-y-2">
+              <Label htmlFor="recovery-key">Recovery Key (save this in a safe place)</Label>
+              <div className="flex items-center gap-2">
+                <Input 
+                  id="recovery-key"
+                  value="ABCD-EFGH-IJKL-MNOP"
+                  readOnly
+                  className="font-mono"
+                />
+                <Button variant="outline" size="sm">
+                  Copy
+                </Button>
+              </div>
+            </div>
+            
+            <div className="w-full space-y-2">
+              <Label htmlFor="verification-code">Verification Code</Label>
+              <Input 
+                id="verification-code"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="Enter 6-digit code"
+                maxLength={6}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={verify2FACode}>Verify and Enable</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };

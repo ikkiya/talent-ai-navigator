@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { AuthState, User, UserRole } from '@/types';
@@ -7,6 +6,14 @@ import { Database } from '@/integrations/supabase/types';
 
 // Define the Profile interface based on the database schema
 type Profile = Database['public']['Tables']['profiles']['Row'];
+
+// Get role from email for demo accounts when profile can't be fetched
+const getRoleFromEmail = (email: string): UserRole => {
+  if (email.includes('admin')) return 'admin';
+  if (email.includes('manager')) return 'manager';
+  if (email.includes('mentor')) return 'mentor';
+  return 'manager'; // Default role
+};
 
 export function useAuthProvider() {
   const { toast } = useToast();
@@ -40,15 +47,18 @@ export function useAuthProvider() {
             console.warn('User profile not found:', profileError);
           }
 
-          // Type assertion for profile data
+          // Determine user role - from profile or from email for demo accounts
+          const email = data.session.user.email || '';
           const profile = profileData as Profile | null;
-          const role = profile?.role as UserRole || 'manager';
+          
+          // If profile exists and has a role, use it; otherwise infer from email
+          const role = (profile?.role as UserRole) || getRoleFromEmail(email);
 
           const user: User = {
             id: data.session.user.id,
-            username: data.session.user.email?.split('@')[0] || '',
-            email: data.session.user.email || '',
-            firstName: profile?.first_name || '',
+            username: email.split('@')[0] || '',
+            email: email,
+            firstName: profile?.first_name || email.split('@')[0] || '',
             lastName: profile?.last_name || '',
             role: role,
             avatarUrl: profile?.avatar_url || '',
@@ -98,15 +108,17 @@ export function useAuthProvider() {
               console.warn('User profile not found:', profileError);
             }
 
-            // Type assertion for profile data
+            const email = session.user.email || '';
             const profile = profileData as Profile | null;
-            const role = profile?.role as UserRole || 'manager';
+            
+            // If profile exists and has a role, use it; otherwise infer from email
+            const role = (profile?.role as UserRole) || getRoleFromEmail(email);
 
             const user: User = {
               id: session.user.id,
-              username: session.user.email?.split('@')[0] || '',
-              email: session.user.email || '',
-              firstName: profile?.first_name || '',
+              username: email.split('@')[0] || '',
+              email: email,
+              firstName: profile?.first_name || email.split('@')[0] || '',
               lastName: profile?.last_name || '',
               role: role,
               avatarUrl: profile?.avatar_url || '',

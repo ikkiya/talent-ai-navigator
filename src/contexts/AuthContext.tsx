@@ -5,7 +5,7 @@ import { useAuthProvider } from '@/hooks/useAuthProvider';
 
 interface AuthContextType {
   auth: AuthState;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: any }>;
   logout: () => void;
   isAuthorized: (requiredRoles: UserRole[]) => boolean;
 }

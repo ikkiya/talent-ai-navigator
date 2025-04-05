@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
@@ -114,8 +115,8 @@ const Projects = () => {
                       <Badge
                         variant={
                           project.status === 'active' ? 'default' :
-                            project.status === 'completed' ? 'success' :
-                              'secondary'
+                            project.status === 'completed' ? 'secondary' :
+                              'outline'
                         }
                       >
                         {project.status}

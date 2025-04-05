@@ -3,6 +3,27 @@ import { supabase } from '@/lib/supabase';
 import { TeamRecommendation, Employee } from '@/types';
 import { api } from './index';
 
+// Get all recommendations (mock implementation)
+export const getAll = async (): Promise<TeamRecommendation[]> => {
+  // This is a mock implementation
+  // In a real app, you would fetch from your database
+  const allProjects = await api.projects.getAll();
+  
+  // Return an empty array if no projects
+  if (!allProjects || allProjects.length === 0) {
+    return [];
+  }
+  
+  // Create a recommendation for each project
+  const recommendations = await Promise.all(
+    allProjects.slice(0, 3).map(async (project) => {
+      return await getTeamRecommendations(project.id);
+    })
+  );
+  
+  return recommendations;
+};
+
 // Mock implementation for team recommendations
 export const getTeamRecommendations = async (projectId: string): Promise<TeamRecommendation> => {
   try {

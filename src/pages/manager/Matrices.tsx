@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
@@ -240,7 +241,7 @@ const Matrices = () => {
     try {
       const result = await api.files.uploadCompetencyMatrix(file);
       if (result.success) {
-        queryClient.invalidateQueries(['employees']);
+        queryClient.invalidateQueries({ queryKey: ['employees'] });
       }
     } catch (error) {
       toast({
@@ -256,7 +257,7 @@ const Matrices = () => {
     try {
       const result = await api.files.uploadRetentionMatrix(file);
       if (result.success) {
-        queryClient.invalidateQueries(['employees']);
+        queryClient.invalidateQueries({ queryKey: ['employees'] });
       }
     } catch (error) {
       toast({

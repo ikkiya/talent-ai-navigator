@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
@@ -177,6 +178,7 @@ const Recommendations = () => {
     queryFn: api.employees.getAll,
   });
   
+  // Updated to use the recommendations API correctly
   const { data: recommendations = [], isLoading: isLoadingRecommendations } = useQuery({
     queryKey: ['recommendations'],
     queryFn: api.recommendations.getAll,

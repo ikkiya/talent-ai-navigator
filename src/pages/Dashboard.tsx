@@ -13,12 +13,12 @@ import { Users, UserCheck, UserMinus, BriefcaseBusiness, BarChart3, ArrowUpRight
 const Dashboard = () => {
   const { auth } = useAuth();
   
-  const { data: employees, isLoading: isLoadingEmployees } = useQuery({
+  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });
   
-  const { data: projects, isLoading: isLoadingProjects } = useQuery({
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
     queryKey: ['projects'],
     queryFn: api.projects.getAll,
   });
@@ -34,10 +34,10 @@ const Dashboard = () => {
   }
   
   // Employee stats
-  const totalEmployees = employees?.length || 0;
-  const activeEmployees = employees?.filter(e => e.status === 'active').length || 0;
-  const employeesWithMentor = employees?.filter(e => e.mentorId).length || 0;
-  const atRiskEmployees = employees?.filter(e => {
+  const totalEmployees = employees.length || 0;
+  const activeEmployees = employees.filter(e => e.status === 'active').length || 0;
+  const employeesWithMentor = employees.filter(e => e.mentorId).length || 0;
+  const atRiskEmployees = employees.filter(e => {
     if (!e.retentionMatrix) return false;
     // Calculate average risk score
     const values = Object.values(e.retentionMatrix);
@@ -46,7 +46,7 @@ const Dashboard = () => {
   }).length || 0;
   
   // Department distribution for pie chart
-  const departmentCount = employees?.reduce((acc: Record<string, number>, employee) => {
+  const departmentCount = employees.reduce((acc: Record<string, number>, employee) => {
     acc[employee.department] = (acc[employee.department] || 0) + 1;
     return acc;
   }, {}) || {};

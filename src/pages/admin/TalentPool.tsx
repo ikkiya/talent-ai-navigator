@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/services/api';
+import { Employee } from '@/types';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,8 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowUpFromLine, FileSpreadsheet, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { api } from '@/services/api';
-import { Employee } from '@/types';
 
 const TalentPool = () => {
   const { toast } = useToast();
@@ -172,6 +173,38 @@ const TalentPool = () => {
   const getFileStatus = (file: File | null) => {
     if (!file) return "No file selected";
     return `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+  };
+  
+  const handleCreateEmployee = async (data: Partial<Employee>) => {
+    try {
+      const newEmployee: Omit<Employee, 'id'> = {
+        employeeId: generateEmployeeId(),
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        email: data.email || '',
+        department: data.department || '',
+        position: data.position || '',
+        status: 'active',
+        hireDate: new Date().toISOString(),
+        projectAssignments: [],
+        notes: '',
+      };
+      
+      const response = await api.employees.create(newEmployee);
+      setManualEmployees([...manualEmployees, response.data]);
+      
+      toast({
+        title: "Employee Added",
+        description: "Employee has been added to the talent pool",
+      });
+    } catch (error) {
+      console.error('Error creating employee:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create employee. Please try again.",
+      });
+    }
   };
   
   return (

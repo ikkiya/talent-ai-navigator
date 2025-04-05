@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -138,16 +137,14 @@ const Mentees = () => {
   });
   const { toast } = useToast();
   
-  const { data: employees, isLoading: isLoadingEmployees } = useQuery({
+  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });
   
-  // Filter employees that have the current user as mentor
-  const myMentees = employees?.filter(e => e.mentorId === 'current-user-id') || [];
+  const myMentees = employees.filter(e => e.mentorId === 'current-user-id') || [];
   
-  // Filter employees that have no mentor yet
-  const potentialMentees = employees?.filter(e => !e.mentorId) || [];
+  const potentialMentees = employees.filter(e => !e.mentorId) || [];
   
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -181,14 +178,12 @@ const Mentees = () => {
     });
   };
   
-  // Filter mentees based on search term
   const filteredMentees = myMentees.filter(mentee => 
     `${mentee.firstName} ${mentee.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mentee.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mentee.position.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
-  // Filter potential mentees based on search term
   const filteredPotentialMentees = potentialMentees.filter(mentee => 
     `${mentee.firstName} ${mentee.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mentee.department.toLowerCase().includes(searchTerm.toLowerCase()) ||

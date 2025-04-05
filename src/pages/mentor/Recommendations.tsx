@@ -176,7 +176,7 @@ const Recommendations = () => {
   const [acceptedEmployees, setAcceptedEmployees] = useState<Employee[]>([]);
   const { toast } = useToast();
   
-  const { data: projects, isLoading: isLoadingProjects } = useQuery({
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
     queryKey: ['projects'],
     queryFn: api.projects.getAll,
   });
@@ -279,7 +279,7 @@ const Recommendations = () => {
                     <SelectValue placeholder="Select a project" />
                   </SelectTrigger>
                   <SelectContent>
-                    {projects?.map(project => (
+                    {projects.map(project => (
                       <SelectItem key={project.id} value={project.id}>
                         {project.name}
                       </SelectItem>

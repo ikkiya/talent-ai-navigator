@@ -1,7 +1,7 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
+import { Employee } from '@/types';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,12 +13,31 @@ import { useToast } from '@/hooks/use-toast';
 
 const Employees = () => {
   const { toast } = useToast();
-  const { data: employees, isLoading, error } = useQuery({
+  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });
 
-  if (isLoading) {
+  const departmentStats = employees.length > 0 
+    ? employees.reduce((acc: Record<string, number>, employee) => {
+        acc[employee.department] = (acc[employee.department] || 0) + 1;
+        return acc;
+      }, {})
+    : {};
+
+  const statusCount = {
+    active: employees.length > 0 
+      ? employees.reduce((count, emp) => count + (emp.status === 'active' ? 1 : 0), 0)
+      : 0,
+    onLeave: employees.length > 0 
+      ? employees.reduce((count, emp) => count + (emp.status === 'onLeave' ? 1 : 0), 0)
+      : 0,
+    inactive: employees.length > 0 
+      ? employees.reduce((count, emp) => count + (emp.status === 'inactive' ? 1 : 0), 0)
+      : 0,
+  };
+
+  if (isLoadingEmployees) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-full">

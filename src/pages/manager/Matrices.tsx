@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { FileSpreadsheet, Upload, CheckCircle2, AlertCircle } from 'lucide-react';
 import { api } from '@/services/api';
 import { useQuery } from '@tanstack/react-query';
+import { Employee } from '@/types';
 
 const MatrixUploadCard = ({ 
   title, 
@@ -116,16 +117,14 @@ const MatrixUploadCard = ({
 };
 
 const CompetencyMatrixTable = ({ employeeId }: { employeeId?: string }) => {
-  const { data: employees } = useQuery({
+  const { data: employees = [] } = useQuery({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });
   
-  // If employeeId is provided, find that employee
-  // Otherwise use the first employee in the list
   const employee = employeeId 
-    ? employees?.find(e => e.id === employeeId) 
-    : employees?.[0];
+    ? employees.find(e => e.id === employeeId) 
+    : employees[0];
   
   if (!employee || !employee.competencyMatrix) {
     return (
@@ -155,7 +154,7 @@ const CompetencyMatrixTable = ({ employeeId }: { employeeId?: string }) => {
         </thead>
         <tbody>
           {skills.map((skill, index) => {
-            const score = scores[index];
+            const score = scores[index] as number;
             let level = "Novice";
             if (score >= 4) level = "Expert";
             else if (score >= 3) level = "Advanced";
@@ -176,16 +175,14 @@ const CompetencyMatrixTable = ({ employeeId }: { employeeId?: string }) => {
 };
 
 const RetentionMatrixTable = ({ employeeId }: { employeeId?: string }) => {
-  const { data: employees } = useQuery({
+  const { data: employees = [] } = useQuery({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });
   
-  // If employeeId is provided, find that employee
-  // Otherwise use the first employee in the list
   const employee = employeeId 
-    ? employees?.find(e => e.id === employeeId) 
-    : employees?.[0];
+    ? employees.find(e => e.id === employeeId) 
+    : employees[0];
   
   if (!employee || !employee.retentionMatrix) {
     return (
@@ -215,7 +212,7 @@ const RetentionMatrixTable = ({ employeeId }: { employeeId?: string }) => {
         </thead>
         <tbody>
           {factors.map((factor, index) => {
-            const score = scores[index];
+            const score = scores[index] as number;
             let risk = "High Risk";
             if (score >= 4) risk = "Low Risk";
             else if (score >= 3) risk = "Medium Risk";

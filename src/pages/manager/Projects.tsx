@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
@@ -116,7 +117,7 @@ const Projects = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>('grid');
   
-  const { data: projects, isLoading, error } = useQuery({
+  const { data: projects = [], isLoading, error } = useQuery({
     queryKey: ['projects'],
     queryFn: api.projects.getAll,
   });
@@ -173,7 +174,7 @@ const Projects = () => {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-2xl font-bold">
-                  {projects?.filter(p => p.status === 'active').length || 0}
+                  {projects.filter(p => p.status === 'active').length || 0}
                 </div>
                 <BriefcaseBusiness className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -203,7 +204,7 @@ const Projects = () => {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-2xl font-bold">
-                  {projects?.filter(p => p.status === 'planning').length || 0}
+                  {projects.filter(p => p.status === 'planning').length || 0}
                 </div>
                 <Clock className="h-5 w-5 text-muted-foreground" />
               </div>

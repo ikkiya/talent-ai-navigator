@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Sparkles } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Sparkles, Info, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 
@@ -38,7 +38,6 @@ const Login = () => {
       
       console.log(`Logging in with demo account: ${demoEmail}`);
       
-      // Use direct Supabase auth to debug the issue
       const { data, error } = await supabase.auth.signInWithPassword({
         email: demoEmail,
         password: 'password123',
@@ -46,7 +45,7 @@ const Login = () => {
       
       if (error) {
         console.error('Demo login error:', error);
-        setLoginError(error.message);
+        setLoginError(`Login failed: ${error.message}. These demo accounts need to be created in Supabase first.`);
         toast({
           title: "Login Failed",
           description: error.message,
@@ -92,7 +91,6 @@ const Login = () => {
     try {
       console.log(`Attempting login with email: ${email}`);
       
-      // Use direct Supabase auth to debug the issue
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -152,9 +150,19 @@ const Login = () => {
             <CardContent className="space-y-4">              
               {(auth.error || loginError) && (
                 <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
                   <AlertDescription>{auth.error || loginError}</AlertDescription>
                 </Alert>
               )}
+              
+              <Alert variant="default" className="bg-muted">
+                <Info className="h-4 w-4" />
+                <AlertTitle>Important Note</AlertTitle>
+                <AlertDescription className="text-xs">
+                  Before using demo accounts, you need to create these users in your Supabase Auth panel with password "password123" and disable email confirmation.
+                </AlertDescription>
+              </Alert>
               
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>

@@ -1,19 +1,17 @@
 
-import * as employees from './employees';
-import * as projects from './projects';
-import * as recommendations from './recommendations';
-import * as files from './files';
+import * as employeesApi from './employees';
+import * as projectsApi from './projects';
+import * as recommendationsApi from './recommendations';
+import * as filesApi from './files';
 
 // Export a properly structured API object
 export const api = {
-  employees,
-  projects,
-  recommendations,
-  files
+  employees: employeesApi,
+  projects: projectsApi,
+  recommendations: recommendationsApi,
+  files: filesApi
 };
 
-// Re-export all individual modules for direct imports
-export * from './employees';
-export * from './projects';
-export * from './recommendations';
-export * from './files';
+// Re-export all individual modules for direct imports if needed
+// But rename them to avoid conflicts
+export { employeesApi, projectsApi, recommendationsApi, filesApi };

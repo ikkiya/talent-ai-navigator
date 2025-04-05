@@ -1,425 +1,292 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import { Employee } from '@/types';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowUpFromLine, FileSpreadsheet, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Filter, Plus, Search, UserPlus } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Employee } from '@/types';
+
+// Function to generate a random employee ID
+const generateEmployeeId = () => {
+  return 'EMP' + Math.floor(Math.random() * 9000 + 1000);
+};
+
+const EmployeeForm = ({
+  onSubmit,
+  initialData,
+  formTitle = "Add New Employee",
+  submitLabel = "Add Employee"
+}: {
+  onSubmit: (data: Partial<Employee>) => void;
+  initialData?: Partial<Employee>;
+  formTitle?: string;
+  submitLabel?: string;
+}) => {
+  const [firstName, setFirstName] = useState(initialData?.firstName || '');
+  const [lastName, setLastName] = useState(initialData?.lastName || '');
+  const [email, setEmail] = useState(initialData?.email || '');
+  const [department, setDepartment] = useState(initialData?.department || '');
+  const [position, setPosition] = useState(initialData?.position || '');
+  const [status, setStatus] = useState(initialData?.status || 'active');
+
+  const handleSubmit = () => {
+    onSubmit({
+      firstName,
+      lastName,
+      email,
+      department,
+      position,
+      status,
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="firstName">First Name</Label>
+          <Input
+            id="firstName"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="lastName">Last Name</Label>
+          <Input
+            id="lastName"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="position">Position</Label>
+          <Input
+            id="position"
+            value={position}
+            onChange={(e) => setPosition(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="department">Department</Label>
+          <Input
+            id="department"
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="status">Status</Label>
+          <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="onLeave">On Leave</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      
+      <div className="pt-4">
+        <Button onClick={handleSubmit} className="w-full">
+          {submitLabel}
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const TalentPool = () => {
-  const { toast } = useToast();
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadType, setUploadType] = useState<'competency' | 'retention' | 'ilbam'>('competency');
-  const [competencyFile, setCompetencyFile] = useState<File | null>(null);
-  const [retentionFile, setRetentionFile] = useState<File | null>(null);
-  const [ilbamFile, setIlbamFile] = useState<File | null>(null);
-  
-  const [manualEmployees, setManualEmployees] = useState<Employee[]>([]);
-  const [newEmployee, setNewEmployee] = useState({
-    id: '',
-    employeeId: '',
-    firstName: '',
-    lastName: '',
-    email: '',
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
     department: '',
-    position: '',
-    hireDate: '',
-    status: 'active' as const,
+    status: '',
   });
-  
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    
-    switch (uploadType) {
-      case 'competency':
-        setCompetencyFile(file);
-        break;
-      case 'retention':
-        setRetentionFile(file);
-        break;
-      case 'ilbam':
-        setIlbamFile(file);
-        break;
-    }
-  };
-  
-  const handleUpload = async () => {
-    let file: File | null = null;
-    let uploadFunction: (file: File) => Promise<{ success: boolean; message: string }>;
-    
-    switch (uploadType) {
-      case 'competency':
-        file = competencyFile;
-        uploadFunction = api.files.uploadCompetencyMatrix;
-        break;
-      case 'retention':
-        file = retentionFile;
-        uploadFunction = api.files.uploadRetentionMatrix;
-        break;
-      case 'ilbam':
-        file = ilbamFile;
-        uploadFunction = api.files.uploadILBAMTalentPool;
-        break;
-      default:
-        toast({
-          title: "Error",
-          description: "Invalid upload type selected",
-          variant: "destructive",
-        });
-        return;
-    }
-    
-    if (!file) {
-      toast({
-        title: "No file selected",
-        description: "Please select a file to upload",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsUploading(true);
-    try {
-      const result = await uploadFunction(file);
-      
-      if (result.success) {
-        toast({
-          title: "Upload Successful",
-          description: result.message,
-        });
-        
-        switch (uploadType) {
-          case 'competency':
-            setCompetencyFile(null);
-            break;
-          case 'retention':
-            setRetentionFile(null);
-            break;
-          case 'ilbam':
-            setIlbamFile(null);
-            break;
-        }
-      } else {
-        toast({
-          title: "Upload Failed",
-          description: result.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast({
-        title: "Upload Error",
-        description: "An unexpected error occurred during upload",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
-  
-  const handleManualAdd = () => {
-    if (!newEmployee.employeeId || !newEmployee.firstName || !newEmployee.lastName || !newEmployee.email) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const employee: Employee = {
-      ...newEmployee,
-      id: crypto.randomUUID(),
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: employees = [], isLoading, error } = useQuery({
+    queryKey: ['employees'],
+    queryFn: api.employees.getAll,
+  });
+
+  const handleAddEmployee = async (data: Partial<Employee>) => {
+    const newEmployee = {
+      ...data,
+      employeeId: generateEmployeeId(),
+      status: data.status as 'active' | 'inactive' | 'onLeave' || 'active',
+      hireDate: new Date().toISOString(),
       projectAssignments: [],
     };
     
-    const updatedEmployees = [...manualEmployees, employee];
-    setManualEmployees(updatedEmployees);
-    
-    setNewEmployee({
-      id: '',
-      employeeId: '',
-      firstName: '',
-      lastName: '',
-      email: '',
-      department: '',
-      position: '',
-      hireDate: '',
-      status: 'active' as const,
-    });
-    
-    toast({
-      title: "Employee Added",
-      description: "Employee has been added to the talent pool",
-    });
-  };
-  
-  const handleStatusChange = (employeeId: string, status: "active" | "inactive" | "onLeave") => {
-    setManualEmployees(prevEmployees => prevEmployees.map(employee => 
-      employee.id === employeeId 
-        ? { ...employee, status }
-        : employee
-    ));
-  };
-  
-  const getFileStatus = (file: File | null) => {
-    if (!file) return "No file selected";
-    return `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
-  };
-  
-  const handleCreateEmployee = async (data: Partial<Employee>) => {
     try {
-      const newEmployee: Omit<Employee, 'id'> = {
-        employeeId: generateEmployeeId(),
-        firstName: data.firstName || '',
-        lastName: data.lastName || '',
-        email: data.email || '',
-        department: data.department || '',
-        position: data.position || '',
-        status: 'active',
-        hireDate: new Date().toISOString(),
-        projectAssignments: [],
-        notes: '',
-      };
-      
-      const response = await api.employees.create(newEmployee);
-      setManualEmployees([...manualEmployees, response.data]);
-      
+      await api.employees.create(newEmployee as Omit<Employee, 'id'>);
       toast({
-        title: "Employee Added",
-        description: "Employee has been added to the talent pool",
+        title: "Employee added",
+        description: `${data.firstName} ${data.lastName} has been added to the talent pool.`,
       });
+      setAddDialogOpen(false);
+      queryClient.invalidateQueries(['employees']);
     } catch (error) {
-      console.error('Error creating employee:', error);
+      console.error("Error adding employee:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to create employee. Please try again.",
+        description: "Failed to add employee. Please try again.",
       });
     }
   };
-  
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredEmployees = employees.filter((employee) => {
+    const searchRegex = new RegExp(searchQuery, 'i');
+    const matchesSearch =
+      searchRegex.test(employee.firstName) || searchRegex.test(employee.lastName) || searchRegex.test(employee.email);
+
+    const matchesFilters =
+      (filters.department === '' || employee.department === filters.department) &&
+      (filters.status === '' || employee.status === filters.status);
+
+    return matchesSearch && matchesFilters;
+  });
+
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Talent Pool</h2>
-          <p className="text-muted-foreground">
-            Upload and manage your employee talent pool with skills matrices
-          </p>
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Talent Pool</h1>
+          <Button onClick={() => setAddDialogOpen(true)}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add Employee
+          </Button>
         </div>
-        
-        <Tabs defaultValue="upload" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="upload">Upload Data</TabsTrigger>
-            <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="upload" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Upload Files</CardTitle>
-                <CardDescription>
-                  Upload your employee data, competency matrices, and retention factors
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="uploadType">Upload Type</Label>
-                    <select 
-                      id="uploadType"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={uploadType}
-                      onChange={(e) => setUploadType(e.target.value as any)}
-                    >
-                      <option value="competency">Competency Matrix</option>
-                      <option value="retention">Retention Matrix</option>
-                      <option value="ilbam">ILBAM Talent Pool</option>
-                    </select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="file">File</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
-                      <Input 
-                        id="file" 
-                        type="file" 
-                        accept=".csv,.xlsx,.xls"
-                        onChange={handleFileChange}
-                      />
-                      <Button 
-                        onClick={handleUpload}
-                        disabled={isUploading || (
-                          (uploadType === 'competency' && !competencyFile) ||
-                          (uploadType === 'retention' && !retentionFile) ||
-                          (uploadType === 'ilbam' && !ilbamFile)
-                        )}
-                      >
-                        <ArrowUpFromLine className="mr-2 h-4 w-4" />
-                        {isUploading ? "Uploading..." : "Upload"}
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {uploadType === 'competency' && getFileStatus(competencyFile)}
-                      {uploadType === 'retention' && getFileStatus(retentionFile)}
-                      {uploadType === 'ilbam' && getFileStatus(ilbamFile)}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="bg-muted/50 p-4 rounded-md flex items-start space-x-3">
-                  <Info className="h-5 w-5 text-blue-500 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-medium">File Format Instructions</p>
-                    <p className="text-muted-foreground mt-1">
-                      {uploadType === 'competency' && "Upload a CSV or Excel file with employee IDs and skill ratings (0-5) for each competency area."}
-                      {uploadType === 'retention' && "Upload a CSV or Excel file with employee IDs and ratings (0-5) for retention risk factors."}
-                      {uploadType === 'ilbam' && "Upload the standard ILBAM talent pool export file with all employee data."}
-                    </p>
-                    <a href="#" className="text-primary hover:underline text-xs mt-2 inline-block">
-                      <FileSpreadsheet className="h-3 w-3 inline mr-1" />
-                      Download sample template
-                    </a>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="manual" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Manual Entry</CardTitle>
-                <CardDescription>
-                  Add employees to the talent pool manually
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="employeeId">Employee ID</Label>
-                    <Input 
-                      id="employeeId" 
-                      value={newEmployee.employeeId}
-                      onChange={(e) => setNewEmployee({...newEmployee, employeeId: e.target.value})}
-                      placeholder="E.g., EMP12345"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email"
-                      value={newEmployee.email}
-                      onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
-                      placeholder="employee@company.com"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input 
-                      id="firstName" 
-                      value={newEmployee.firstName}
-                      onChange={(e) => setNewEmployee({...newEmployee, firstName: e.target.value})}
-                      placeholder="First name"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input 
-                      id="lastName" 
-                      value={newEmployee.lastName}
-                      onChange={(e) => setNewEmployee({...newEmployee, lastName: e.target.value})}
-                      placeholder="Last name"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="department">Department</Label>
-                    <Input 
-                      id="department" 
-                      value={newEmployee.department}
-                      onChange={(e) => setNewEmployee({...newEmployee, department: e.target.value})}
-                      placeholder="E.g., Engineering"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="position">Position</Label>
-                    <Input 
-                      id="position" 
-                      value={newEmployee.position}
-                      onChange={(e) => setNewEmployee({...newEmployee, position: e.target.value})}
-                      placeholder="E.g., Senior Developer"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="hireDate">Hire Date</Label>
-                    <Input 
-                      id="hireDate" 
-                      type="date"
-                      value={newEmployee.hireDate}
-                      onChange={(e) => setNewEmployee({...newEmployee, hireDate: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <select 
-                      id="status"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={newEmployee.status}
-                      onChange={(e) => setNewEmployee({...newEmployee, status: e.target.value as 'active' | 'inactive' | 'onLeave'})}
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                      <option value="onLeave">On Leave</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <Button onClick={handleManualAdd} className="w-full mt-4">
-                  Add Employee
-                </Button>
-                
-                {manualEmployees.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold mb-3">Added Employees ({manualEmployees.length})</h3>
-                    <div className="border rounded-md">
-                      <div className="grid grid-cols-3 gap-2 p-2 border-b font-medium text-sm">
-                        <div>Name</div>
-                        <div>ID</div>
-                        <div>Department</div>
-                      </div>
-                      <div className="max-h-60 overflow-y-auto">
-                        {manualEmployees.map((emp) => (
-                          <div key={emp.id} className="grid grid-cols-3 gap-2 p-2 border-b last:border-b-0 text-sm">
-                            <div>{emp.firstName} {emp.lastName}</div>
-                            <div>{emp.employeeId}</div>
-                            <div>{emp.department}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Employee List</CardTitle>
+            <CardDescription>Manage your team members and their project assignments.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between py-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search employees..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                />
+              </div>
+              <div className="space-x-2">
+                <Select onValueChange={(value) => setFilters({ ...filters, department: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Departments</SelectItem>
+                    {[...new Set(employees.map((emp) => emp.department))].map((dept) => (
+                      <SelectItem key={dept} value={dept}>
+                        {dept}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="onLeave">On Leave</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Position</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">Loading...</TableCell>
+                  </TableRow>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">Error: {error.message}</TableCell>
+                  </TableRow>
+                ) : filteredEmployees.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">No employees found.</TableCell>
+                  </TableRow>
+                ) : (
+                  filteredEmployees.map((employee) => (
+                    <TableRow key={employee.id}>
+                      <TableCell>{employee.firstName} {employee.lastName}</TableCell>
+                      <TableCell>{employee.email}</TableCell>
+                      <TableCell>{employee.position}</TableCell>
+                      <TableCell>{employee.department}</TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          employee.status === 'active' ? 'default' :
+                            employee.status === 'inactive' ? 'destructive' :
+                              'outline'
+                        }>
+                          {employee.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Employee</DialogTitle>
+              <DialogDescription>
+                Fill out the form below to add a new employee to the talent pool.
+              </DialogDescription>
+            </DialogHeader>
+            <EmployeeForm onSubmit={handleAddEmployee} />
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

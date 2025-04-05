@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
@@ -13,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Employees = () => {
   const { toast } = useToast();
-  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
+  const { data: employees = [], isLoading: isLoadingEmployees, error } = useQuery({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });

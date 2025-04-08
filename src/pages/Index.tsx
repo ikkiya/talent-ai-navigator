@@ -7,33 +7,40 @@ import { isSupabaseConfigured } from '@/lib/supabase';
 const Index = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState('Initializing application...');
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    console.log('Index page loaded');
+    console.log('Index page loaded - starting initialization');
     
-    // Check if Supabase is configured
-    const supabaseConfigured = isSupabaseConfigured();
-    console.log('Supabase configured:', supabaseConfigured);
-    
-    if (!supabaseConfigured) {
-      console.log('Supabase not configured, redirecting to login');
-      setStatus('Redirecting to login page...');
-      navigate('/login');
-      return;
-    }
-    
-    // Check if user is authenticated
-    const token = localStorage.getItem('token');
-    console.log('Token exists:', !!token);
-    
-    if (token) {
-      console.log('User has token, redirecting to dashboard');
-      setStatus('Redirecting to dashboard...');
-      navigate('/dashboard');
-    } else {
-      console.log('No token found, redirecting to login');
-      setStatus('Redirecting to login page...');
-      navigate('/login');
+    try {
+      // Check if Supabase is configured
+      const supabaseConfigured = isSupabaseConfigured();
+      console.log('Supabase configured:', supabaseConfigured);
+      
+      if (!supabaseConfigured) {
+        console.log('Supabase not configured, redirecting to login');
+        setStatus('Redirecting to login page...');
+        setTimeout(() => navigate('/login'), 500);
+        return;
+      }
+      
+      // Check if user is authenticated
+      const token = localStorage.getItem('token');
+      console.log('Token exists:', !!token);
+      
+      if (token) {
+        console.log('User has token, redirecting to dashboard');
+        setStatus('Redirecting to dashboard...');
+        setTimeout(() => navigate('/dashboard'), 500);
+      } else {
+        console.log('No token found, redirecting to login');
+        setStatus('Redirecting to login page...');
+        setTimeout(() => navigate('/login'), 500);
+      }
+    } catch (err) {
+      console.error('Error during initialization:', err);
+      setError(`Initialization error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setStatus('Error occurred during initialization');
     }
   }, [navigate]);
   
@@ -45,6 +52,9 @@ const Index = () => {
           <h1 className="text-3xl font-bold mt-4">TalentNavigator</h1>
           <p className="text-muted-foreground mt-2">AI-Powered Employee Management</p>
           <p className="text-muted-foreground mt-1">{status}</p>
+          {error && (
+            <p className="text-destructive mt-2 max-w-md">{error}</p>
+          )}
         </div>
       </div>
       <footer className="py-3 px-4 text-center text-xs text-muted-foreground">

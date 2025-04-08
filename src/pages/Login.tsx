@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Sparkles, Info, AlertCircle } from 'lucide-react';
+import { Sparkles, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 
@@ -155,14 +154,6 @@ const Login = () => {
                   <AlertDescription>{auth.error || loginError}</AlertDescription>
                 </Alert>
               )}
-              
-              <Alert variant="default" className="bg-muted">
-                <Info className="h-4 w-4" />
-                <AlertTitle>Important Note</AlertTitle>
-                <AlertDescription className="text-xs">
-                  Before using demo accounts, you need to create these users in your Supabase Auth panel with password "password123" and disable email confirmation.
-                </AlertDescription>
-              </Alert>
               
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>

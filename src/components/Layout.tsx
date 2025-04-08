@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -191,6 +192,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
           {children}
         </main>
+        
+        <footer className="border-t py-3 px-4 md:px-6 text-center text-xs text-muted-foreground">
+          <p>© {new Date().getFullYear()} ATOS groupe. All rights reserved.</p>
+        </footer>
       </div>
     </div>
   );

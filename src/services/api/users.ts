@@ -5,7 +5,7 @@ import { User, UserRole } from '@/types';
 // User management functions
 export const getAll = async (): Promise<User[]> => {
   try {
-    // Use a direct SQL query with RPC instead of accessing tables that don't exist
+    // Use the RPC function to get all users
     const { data, error } = await supabase
       .rpc('get_all_users')
       .returns<any[]>();

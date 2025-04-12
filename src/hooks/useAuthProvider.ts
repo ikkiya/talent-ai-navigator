@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { AuthState, User, UserRole } from '@/types';
+import { AuthState, User, UserRole, UserStatus } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
 
@@ -61,7 +62,9 @@ export function useAuthProvider() {
             firstName: profile?.first_name || email.split('@')[0] || '',
             lastName: profile?.last_name || '',
             role: role,
+            status: 'active' as UserStatus,
             avatarUrl: profile?.avatar_url || '',
+            lastLogin: profile?.last_login || null,
           };
 
           setAuth({
@@ -121,7 +124,9 @@ export function useAuthProvider() {
               firstName: profile?.first_name || email.split('@')[0] || '',
               lastName: profile?.last_name || '',
               role: role,
+              status: 'active' as UserStatus,
               avatarUrl: profile?.avatar_url || '',
+              lastLogin: profile?.last_login || null,
             };
 
             setAuth({

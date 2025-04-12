@@ -1,23 +1,55 @@
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { Employee } from '@/types';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, Briefcase, User, Users } from 'lucide-react';
+import { BarChart, Briefcase, User, Users, UserCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Employees = () => {
   const { toast } = useToast();
-  const { data: employees = [], isLoading: isLoadingEmployees, error } = useQuery<Employee[]>({
+  const { auth } = useAuth();
+  const queryClient = useQueryClient();
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [isAssignMentorDialogOpen, setIsAssignMentorDialogOpen] = useState(false);
+
+  const { data: employees = [], isLoading: isLoadingEmployees, error } = useQuery({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });
+
+  const assignMentorMutation = useMutation({
+    mutationFn: (userId: string) => api.users.assignMentorRole(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast({
+        title: "Mentor role assigned",
+        description: `${selectedEmployee?.firstName} ${selectedEmployee?.lastName} is now a mentor.`
+      });
+      setIsAssignMentorDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error assigning mentor role",
+        description: `There was an error: ${error}`,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleAssignMentor = () => {
+    if (selectedEmployee) {
+      assignMentorMutation.mutate(selectedEmployee.id);
+    }
+  };
 
   const departmentStats = employees.length > 0 
     ? employees.reduce<Record<string, number>>((acc, employee) => {
@@ -37,6 +69,8 @@ const Employees = () => {
       ? employees.reduce((count, emp) => count + (emp.status === 'inactive' ? 1 : 0), 0)
       : 0,
   };
+
+  const isManager = auth.user?.role === 'manager' || auth.user?.role === 'admin';
 
   if (isLoadingEmployees) {
     return (
@@ -185,16 +219,31 @@ const Employees = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => toast({ 
-                          title: "View employee details", 
-                          description: "Employee details view will be available in a future update." 
-                        })}
-                      >
-                        View
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        {isManager && (
+                          <Button
+                            variant="ghost" 
+                            size="icon"
+                            title="Assign mentor role"
+                            onClick={() => {
+                              setSelectedEmployee(employee);
+                              setIsAssignMentorDialogOpen(true);
+                            }}
+                          >
+                            <UserCheck className="h-4 w-4 text-blue-600" />
+                          </Button>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => toast({ 
+                            title: "View employee details", 
+                            description: "Employee details view will be available in a future update." 
+                          })}
+                        >
+                          View
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -203,6 +252,28 @@ const Employees = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Assign Mentor Role Dialog */}
+      {isManager && (
+        <Dialog open={isAssignMentorDialogOpen} onOpenChange={setIsAssignMentorDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign Mentor Role</DialogTitle>
+              <DialogDescription>
+                Do you want to assign the mentor role to {selectedEmployee?.firstName} {selectedEmployee?.lastName}?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAssignMentorDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAssignMentor}>
+                Assign Mentor Role
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </Layout>
   );
 };

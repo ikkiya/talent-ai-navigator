@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -7,10 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { User, UserPlus, Search, UserX, UserCheck, Mail } from 'lucide-react';
+import { User, UserPlus, Search, UserX, UserCheck, Mail, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
 import { UserRole } from '@/types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as usersApi from '@/services/api/users';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/contexts/AuthContext';
 
 type UserStatus = 'active' | 'inactive' | 'invited';
 
@@ -22,74 +27,73 @@ interface UserData {
   lastName: string;
   role: UserRole;
   status: UserStatus;
-  lastLogin: string | null;
+  lastLogin?: string | null;
   avatarUrl?: string;
 }
 
-const mockUsers: UserData[] = [
-  {
-    id: '1',
-    username: 'admin',
-    email: 'admin@company.com',
-    firstName: 'Admin',
-    lastName: 'User',
-    role: 'admin',
-    status: 'active',
-    lastLogin: '2025-04-02T10:30:00Z',
-    avatarUrl: 'https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&w=100&h=100'
-  },
-  {
-    id: '2',
-    username: 'manager',
-    email: 'manager@company.com',
-    firstName: 'Project',
-    lastName: 'Manager',
-    role: 'manager',
-    status: 'active',
-    lastLogin: '2025-04-01T15:45:00Z',
-    avatarUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=100&h=100'
-  },
-  {
-    id: '3',
-    username: 'mentor',
-    email: 'mentor@company.com',
-    firstName: 'Senior',
-    lastName: 'Mentor',
-    role: 'mentor',
-    status: 'active',
-    lastLogin: '2025-04-03T08:15:00Z',
-    avatarUrl: 'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&fit=crop&w=100&h=100'
-  },
-  {
-    id: '4',
-    username: 'jdoe',
-    email: 'john.doe@company.com',
-    firstName: 'John',
-    lastName: 'Doe',
-    role: 'manager',
-    status: 'inactive',
-    lastLogin: '2025-03-20T11:30:00Z'
-  },
-  {
-    id: '5',
-    username: 'asmith',
-    email: 'alice.smith@company.com',
-    firstName: 'Alice',
-    lastName: 'Smith',
-    role: 'mentor',
-    status: 'invited',
-    lastLogin: null
-  }
-];
-
 const Users = () => {
-  const [users, setUsers] = useState<UserData[]>(mockUsers);
+  const { auth } = useAuth();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<UserRole>('mentor');
+  const [approveRole, setApproveRole] = useState<UserRole>('mentor');
+  const [activeTab, setActiveTab] = useState('all');
+
+  const { data: allUsers = [], isLoading: isLoadingUsers } = useQuery({
+    queryKey: ['users'],
+    queryFn: usersApi.getAll,
+  });
+
+  const { data: pendingUsers = [], isLoading: isLoadingPending } = useQuery({
+    queryKey: ['pendingUsers'],
+    queryFn: usersApi.getPendingUsers,
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: ({ userId, role }: { userId: string, role: UserRole }) => 
+      usersApi.approveUser(userId, role),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['pendingUsers'] });
+      toast({
+        title: "User approved",
+        description: `${selectedUser?.firstName} ${selectedUser?.lastName} has been approved as ${approveRole}.`
+      });
+      setIsApproveDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error approving user",
+        description: `There was an error approving the user: ${error}`,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const assignMentorMutation = useMutation({
+    mutationFn: (userId: string) => usersApi.assignMentorRole(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast({
+        title: "Mentor role assigned",
+        description: `${selectedUser?.firstName} ${selectedUser?.lastName} is now a mentor.`
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error assigning mentor role",
+        description: `There was an error: ${error}`,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const users = activeTab === 'pending' ? pendingUsers : allUsers;
 
   const filteredUsers = users.filter(user => 
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -97,23 +101,9 @@ const Users = () => {
     `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleStatusChange = (userId: string) => {
-    setUsers(prev => prev.map(user => {
-      if (user.id === userId) {
-        const newStatus = user.status === 'active' ? 'inactive' : 'active';
-        toast({
-          title: `User ${newStatus}`,
-          description: `${user.firstName} ${user.lastName} is now ${newStatus}.`
-        });
-        return { ...user, status: newStatus };
-      }
-      return user;
-    }));
-  };
-
   const handleDelete = () => {
     if (selectedUser) {
-      setUsers(prev => prev.filter(user => user.id !== selectedUser.id));
+      // For mock data only - would use a real API call in production
       toast({
         title: "User deleted",
         description: `${selectedUser.firstName} ${selectedUser.lastName} has been removed from the system.`
@@ -125,18 +115,7 @@ const Users = () => {
 
   const handleInvite = () => {
     if (inviteEmail) {
-      const newUser: UserData = {
-        id: `${users.length + 1}`,
-        username: inviteEmail.split('@')[0],
-        email: inviteEmail,
-        firstName: "",
-        lastName: "",
-        role: inviteRole,
-        status: 'invited',
-        lastLogin: null
-      };
-      
-      setUsers(prev => [...prev, newUser]);
+      // For mock data only - would use a real API call in production
       toast({
         title: "Invitation sent",
         description: `An invitation has been sent to ${inviteEmail}.`
@@ -144,6 +123,20 @@ const Users = () => {
       setIsInviteDialogOpen(false);
       setInviteEmail('');
     }
+  };
+
+  const handleApproveUser = () => {
+    if (selectedUser) {
+      approveMutation.mutate({ userId: selectedUser.id, role: approveRole });
+    }
+  };
+
+  const handleAssignMentor = (userId: string, firstName: string, lastName: string) => {
+    assignMentorMutation.mutate(userId);
+    toast({
+      title: "Assigning mentor role",
+      description: `${firstName} ${lastName} is being assigned the mentor role.`
+    });
   };
 
   const getStatusBadgeColor = (status: UserStatus) => {
@@ -155,14 +148,27 @@ const Users = () => {
     }
   };
 
+  const isAdmin = auth.user?.role === 'admin';
+  const isManager = auth.user?.role === 'manager' || auth.user?.role === 'admin';
+
+  if (isLoadingUsers || isLoadingPending) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-screen">
+          <p>Loading users...</p>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Users Management</h1>
             <p className="text-muted-foreground">
-              Manage user accounts and permissions
+              Manage user accounts, permissions, and approvals
             </p>
           </div>
           <Button onClick={() => setIsInviteDialogOpen(true)}>
@@ -192,6 +198,19 @@ const Users = () => {
             <CardDescription>
               {filteredUsers.length} users in total, {filteredUsers.filter(u => u.status === 'active').length} active
             </CardDescription>
+            {isAdmin && (
+              <Tabs defaultValue="all" className="mt-4" onValueChange={setActiveTab}>
+                <TabsList>
+                  <TabsTrigger value="all">All Users</TabsTrigger>
+                  <TabsTrigger value="pending">
+                    Pending Approval 
+                    {pendingUsers.length > 0 && (
+                      <Badge className="ml-2 bg-amber-500">{pendingUsers.length}</Badge>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
           </CardHeader>
           <CardContent>
             <Table>
@@ -234,17 +253,32 @@ const Users = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleStatusChange(user.id)}
-                          title={user.status === 'active' ? 'Deactivate user' : 'Activate user'}
-                        >
-                          {user.status === 'active' ? 
-                            <UserX className="h-4 w-4" /> : 
-                            <UserCheck className="h-4 w-4" />
-                          }
-                        </Button>
+                        {isAdmin && user.status === 'inactive' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setApproveRole(user.role);
+                              setIsApproveDialogOpen(true);
+                            }}
+                            title="Approve user"
+                          >
+                            <ShieldCheck className="h-4 w-4 text-green-600" />
+                          </Button>
+                        )}
+                        
+                        {isManager && user.role !== 'mentor' && user.status === 'active' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleAssignMentor(user.id, user.firstName, user.lastName)}
+                            title="Assign mentor role"
+                          >
+                            <UserCheck className="h-4 w-4 text-blue-600" />
+                          </Button>
+                        )}
+                        
                         <Button
                           variant="ghost"
                           size="icon"
@@ -256,6 +290,7 @@ const Users = () => {
                         >
                           <UserX className="h-4 w-4 text-destructive" />
                         </Button>
+                        
                         <Button
                           variant="ghost"
                           size="icon"
@@ -273,6 +308,13 @@ const Users = () => {
                     </TableCell>
                   </TableRow>
                 ))}
+                {filteredUsers.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-6">
+                      No users found
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -347,6 +389,48 @@ const Users = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Approve User Dialog */}
+      {isAdmin && (
+        <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Approve User</DialogTitle>
+              <DialogDescription>
+                Approve {selectedUser?.firstName} {selectedUser?.lastName} and assign their role.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <label htmlFor="approveRole" className="text-sm font-medium">
+                  Assign Role
+                </label>
+                <Select 
+                  value={approveRole} 
+                  onValueChange={(value) => setApproveRole(value as UserRole)}
+                >
+                  <SelectTrigger id="approveRole">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="mentor">Mentor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsApproveDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleApproveUser}>
+                Approve User
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </Layout>
   );
 };

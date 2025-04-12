@@ -1,5 +1,5 @@
 
-import { UserRole } from '@/types';
+import { UserRole, UserStatus } from '@/types';
 import { Database } from '@/integrations/supabase/types';
 
 // Define the Profile interface based on the database schema
@@ -30,7 +30,7 @@ export const createUserObject = (
     firstName: profile?.first_name || email.split('@')[0] || '',
     lastName: profile?.last_name || '',
     role: role,
-    status: 'active',
+    status: 'active' as UserStatus,
     avatarUrl: profile?.avatar_url || '',
     lastLogin: lastSignIn || null,
   };

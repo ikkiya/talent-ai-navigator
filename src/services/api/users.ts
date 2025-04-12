@@ -1,6 +1,6 @@
 
 import { supabase } from '@/lib/supabase';
-import { User, UserRole } from '@/types';
+import { User, UserRole, UserStatus } from '@/types';
 
 // Define interfaces for the RPC function return types
 interface UserRPCResponse {
@@ -13,18 +13,12 @@ interface UserRPCResponse {
   last_sign_in_at: string | null;
 }
 
-// Define each RPC function type
-type GetAllUsersFunction = () => Promise<UserRPCResponse[]>;
-type ApproveUserFunction = (params: { user_id: string; user_role: string }) => Promise<null>;
-type AssignMentorRoleFunction = (params: { user_id: string }) => Promise<null>;
-type GetPendingUsersFunction = () => Promise<UserRPCResponse[]>;
-
 // User management functions
 export const getAll = async (): Promise<User[]> => {
   try {
     // Use the RPC function to get all users with proper typing
     const { data, error } = await supabase
-      .rpc<GetAllUsersFunction>('get_all_users');
+      .rpc<UserRPCResponse[]>('get_all_users');
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -42,7 +36,7 @@ export const getAll = async (): Promise<User[]> => {
       firstName: user.first_name || '',
       lastName: user.last_name || '',
       role: user.role as UserRole,
-      status: user.is_active ? 'active' : 'inactive',
+      status: (user.is_active ? 'active' : 'inactive') as UserStatus,
       lastLogin: user.last_sign_in_at || null
     }));
   } catch (error) {
@@ -55,7 +49,7 @@ export const approveUser = async (userId: string, role: UserRole): Promise<boole
   try {
     // Update user role and status using RPC with proper typing
     const { error } = await supabase
-      .rpc<ApproveUserFunction>('approve_user', {
+      .rpc('approve_user', {
         user_id: userId,
         user_role: role
       });
@@ -76,7 +70,7 @@ export const assignMentorRole = async (userId: string): Promise<boolean> => {
   try {
     // Update user role using RPC with proper typing
     const { error } = await supabase
-      .rpc<AssignMentorRoleFunction>('assign_mentor_role', {
+      .rpc('assign_mentor_role', {
         user_id: userId
       });
 
@@ -96,7 +90,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
   try {
     // Use RPC to get pending users with proper typing
     const { data, error } = await supabase
-      .rpc<GetPendingUsersFunction>('get_pending_users');
+      .rpc<UserRPCResponse[]>('get_pending_users');
 
     if (error) {
       console.error('Error fetching pending users:', error);
@@ -114,7 +108,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
       firstName: user.first_name || '',
       lastName: user.last_name || '',
       role: user.role as UserRole,
-      status: 'inactive',
+      status: 'inactive' as UserStatus,
       lastLogin: user.last_sign_in_at || null
     }));
   } catch (error) {

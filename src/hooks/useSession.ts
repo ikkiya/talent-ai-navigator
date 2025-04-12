@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { AuthState, User } from '@/types';
+import { AuthState, User, UserStatus } from '@/types';
 import { createUserObject, Profile } from '@/utils/auth-utils';
 
 export function useSession() {

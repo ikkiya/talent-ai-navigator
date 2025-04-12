@@ -1,5 +1,5 @@
-
 export type UserRole = 'admin' | 'manager' | 'mentor';
+export type UserStatus = 'active' | 'inactive' | 'invited';
 
 export interface User {
   id: string;
@@ -8,7 +8,9 @@ export interface User {
   firstName: string;
   lastName: string;
   role: UserRole;
+  status: UserStatus;
   avatarUrl?: string;
+  lastLogin?: string | null;
 }
 
 export interface AuthState {

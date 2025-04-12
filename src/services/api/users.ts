@@ -5,9 +5,11 @@ import { User, UserRole } from '@/types';
 // User management functions
 export const getAll = async (): Promise<User[]> => {
   try {
+    // Use a direct SQL query since the users table might not be in the TypeScript types yet
     const { data, error } = await supabase
       .from('users')
-      .select('*');
+      .select('*')
+      .returns<any[]>();
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -21,7 +23,8 @@ export const getAll = async (): Promise<User[]> => {
       firstName: user.first_name,
       lastName: user.last_name,
       role: user.role as UserRole,
-      status: user.is_active ? 'active' : 'inactive'
+      status: user.is_active ? 'active' : 'inactive',
+      lastLogin: user.last_login || null
     }));
   } catch (error) {
     console.error('Error in getAll users:', error);
@@ -31,13 +34,15 @@ export const getAll = async (): Promise<User[]> => {
 
 export const approveUser = async (userId: string, role: UserRole): Promise<boolean> => {
   try {
+    // Update user role and status
     const { error } = await supabase
       .from('users')
       .update({
         role: role,
         is_active: true
       })
-      .eq('id', userId);
+      .eq('id', userId)
+      .returns<any>();
 
     if (error) {
       console.error('Error approving user:', error);
@@ -48,7 +53,8 @@ export const approveUser = async (userId: string, role: UserRole): Promise<boole
     if (role === 'manager') {
       const { error: managerError } = await supabase
         .from('managers')
-        .insert([{ user_id: userId }]);
+        .insert([{ user_id: userId }])
+        .returns<any>();
       
       if (managerError) {
         console.error('Error creating manager record:', managerError);
@@ -70,7 +76,8 @@ export const assignMentorRole = async (userId: string): Promise<boolean> => {
       .update({
         role: 'mentor'
       })
-      .eq('id', userId);
+      .eq('id', userId)
+      .returns<any>();
 
     if (error) {
       console.error('Error assigning mentor role:', error);
@@ -89,7 +96,8 @@ export const getPendingUsers = async (): Promise<User[]> => {
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .eq('is_active', false);
+      .eq('is_active', false)
+      .returns<any[]>();
 
     if (error) {
       console.error('Error fetching pending users:', error);
@@ -103,7 +111,8 @@ export const getPendingUsers = async (): Promise<User[]> => {
       firstName: user.first_name,
       lastName: user.last_name,
       role: user.role as UserRole,
-      status: 'inactive'
+      status: 'inactive',
+      lastLogin: user.last_login || null
     }));
   } catch (error) {
     console.error('Error in getPendingUsers:', error);

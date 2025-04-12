@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,25 +9,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { User, UserPlus, Search, UserX, UserCheck, Mail, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
-import { UserRole } from '@/types';
+import { User as UserType, UserRole, UserStatus } from '@/types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as usersApi from '@/services/api/users';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 
-type UserStatus = 'active' | 'inactive' | 'invited';
-
-interface UserData {
-  id: string;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
+interface UserData extends UserType {
   status: UserStatus;
   lastLogin?: string | null;
-  avatarUrl?: string;
 }
 
 const Users = () => {

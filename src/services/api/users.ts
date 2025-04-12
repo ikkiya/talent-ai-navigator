@@ -2,13 +2,23 @@
 import { supabase } from '@/lib/supabase';
 import { User, UserRole } from '@/types';
 
+// Define interfaces for the RPC function return types
+interface UserRPCResponse {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  is_active: boolean;
+  last_sign_in_at: string | null;
+}
+
 // User management functions
 export const getAll = async (): Promise<User[]> => {
   try {
     // Use the RPC function to get all users
     const { data, error } = await supabase
-      .rpc('get_all_users')
-      .select();
+      .rpc('get_all_users');
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -18,7 +28,10 @@ export const getAll = async (): Promise<User[]> => {
     // If no data is returned, return an empty array
     if (!data) return [];
     
-    return data.map(user => ({
+    // Cast the data to the expected type
+    const usersData = data as UserRPCResponse[];
+    
+    return usersData.map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',
@@ -79,8 +92,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
   try {
     // Use RPC to get pending users
     const { data, error } = await supabase
-      .rpc('get_pending_users')
-      .select();
+      .rpc('get_pending_users');
 
     if (error) {
       console.error('Error fetching pending users:', error);
@@ -90,7 +102,10 @@ export const getPendingUsers = async (): Promise<User[]> => {
     // If no data is returned, return an empty array
     if (!data) return [];
     
-    return data.map(user => ({
+    // Cast the data to the expected type
+    const usersData = data as UserRPCResponse[];
+    
+    return usersData.map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',

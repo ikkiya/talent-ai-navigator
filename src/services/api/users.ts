@@ -5,10 +5,9 @@ import { User, UserRole } from '@/types';
 // User management functions
 export const getAll = async (): Promise<User[]> => {
   try {
-    // Use a direct SQL query since the users table might not be in the TypeScript types yet
+    // Use a direct SQL query with RPC instead of accessing tables that don't exist
     const { data, error } = await supabase
-      .from('users')
-      .select('*')
+      .rpc('get_all_users')
       .returns<any[]>();
 
     if (error) {
@@ -16,12 +15,15 @@ export const getAll = async (): Promise<User[]> => {
       throw error;
     }
     
+    // If no data is returned, return an empty array
+    if (!data) return [];
+    
     return data.map(user => ({
       id: user.id,
-      username: user.email.split('@')[0],
-      email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
+      username: user.email?.split('@')[0] || '',
+      email: user.email || '',
+      firstName: user.first_name || '',
+      lastName: user.last_name || '',
       role: user.role as UserRole,
       status: user.is_active ? 'active' : 'inactive',
       lastLogin: user.last_login || null
@@ -34,32 +36,16 @@ export const getAll = async (): Promise<User[]> => {
 
 export const approveUser = async (userId: string, role: UserRole): Promise<boolean> => {
   try {
-    // Update user role and status
+    // Update user role and status using RPC
     const { error } = await supabase
-      .from('users')
-      .update({
-        role: role,
-        is_active: true
-      })
-      .eq('id', userId)
-      .returns<any>();
+      .rpc('approve_user', {
+        user_id: userId,
+        user_role: role
+      });
 
     if (error) {
       console.error('Error approving user:', error);
       return false;
-    }
-
-    // If approving as manager, add entry to managers table
-    if (role === 'manager') {
-      const { error: managerError } = await supabase
-        .from('managers')
-        .insert([{ user_id: userId }])
-        .returns<any>();
-      
-      if (managerError) {
-        console.error('Error creating manager record:', managerError);
-        return false;
-      }
     }
 
     return true;
@@ -71,13 +57,11 @@ export const approveUser = async (userId: string, role: UserRole): Promise<boole
 
 export const assignMentorRole = async (userId: string): Promise<boolean> => {
   try {
+    // Update user role using RPC
     const { error } = await supabase
-      .from('users')
-      .update({
-        role: 'mentor'
-      })
-      .eq('id', userId)
-      .returns<any>();
+      .rpc('assign_mentor_role', {
+        user_id: userId
+      });
 
     if (error) {
       console.error('Error assigning mentor role:', error);
@@ -93,10 +77,9 @@ export const assignMentorRole = async (userId: string): Promise<boolean> => {
 
 export const getPendingUsers = async (): Promise<User[]> => {
   try {
+    // Use RPC to get pending users
     const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('is_active', false)
+      .rpc('get_pending_users')
       .returns<any[]>();
 
     if (error) {
@@ -104,12 +87,15 @@ export const getPendingUsers = async (): Promise<User[]> => {
       throw error;
     }
     
+    // If no data is returned, return an empty array
+    if (!data) return [];
+    
     return data.map(user => ({
       id: user.id,
-      username: user.email.split('@')[0],
-      email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
+      username: user.email?.split('@')[0] || '',
+      email: user.email || '',
+      firstName: user.first_name || '',
+      lastName: user.last_name || '',
       role: user.role as UserRole,
       status: 'inactive',
       lastLogin: user.last_login || null

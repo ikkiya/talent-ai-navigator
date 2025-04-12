@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { AuthState, User, UserRole, UserStatus } from '@/types';
@@ -64,7 +63,7 @@ export function useAuthProvider() {
             role: role,
             status: 'active' as UserStatus,
             avatarUrl: profile?.avatar_url || '',
-            lastLogin: profile?.last_login || null,
+            lastLogin: null, // Safely set to null since it might not exist in the profile type
           };
 
           setAuth({
@@ -126,7 +125,7 @@ export function useAuthProvider() {
               role: role,
               status: 'active' as UserStatus,
               avatarUrl: profile?.avatar_url || '',
-              lastLogin: profile?.last_login || null,
+              lastLogin: null, // Safely set to null since it might not exist in the profile type
             };
 
             setAuth({

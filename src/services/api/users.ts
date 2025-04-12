@@ -8,7 +8,7 @@ export const getAll = async (): Promise<User[]> => {
     // Use the RPC function to get all users
     const { data, error } = await supabase
       .rpc('get_all_users')
-      .returns<any[]>();
+      .select();
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -26,7 +26,7 @@ export const getAll = async (): Promise<User[]> => {
       lastName: user.last_name || '',
       role: user.role as UserRole,
       status: user.is_active ? 'active' : 'inactive',
-      lastLogin: user.last_login || null
+      lastLogin: user.last_sign_in_at || null
     }));
   } catch (error) {
     console.error('Error in getAll users:', error);
@@ -80,7 +80,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
     // Use RPC to get pending users
     const { data, error } = await supabase
       .rpc('get_pending_users')
-      .returns<any[]>();
+      .select();
 
     if (error) {
       console.error('Error fetching pending users:', error);
@@ -98,7 +98,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
       lastName: user.last_name || '',
       role: user.role as UserRole,
       status: 'inactive',
-      lastLogin: user.last_login || null
+      lastLogin: user.last_sign_in_at || null
     }));
   } catch (error) {
     console.error('Error in getPendingUsers:', error);

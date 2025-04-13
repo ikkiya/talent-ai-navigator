@@ -21,8 +21,7 @@ export const getAll = async (): Promise<IlbamMatrix[]> => {
   try {
     // Use RPC to get all ILBAM matrices with proper typing
     const { data, error } = await supabase
-      .rpc('get_all_ilbam_matrices')
-      .returns<IlbamMatrixDBResponse[]>();
+      .rpc('get_all_ilbam_matrices');
 
     if (error) {
       console.error('Error fetching ILBAM matrices:', error);
@@ -33,7 +32,7 @@ export const getAll = async (): Promise<IlbamMatrix[]> => {
     if (!data) return [];
     
     // Convert from DB format to our application format
-    return (data || []).map(item => ({
+    return (data as IlbamMatrixDBResponse[] || []).map(item => ({
       id: item.id,
       employeeId: item.employee_id,
       businessUnderstanding: item.business_understanding,
@@ -57,8 +56,7 @@ export const getByEmployeeId = async (employeeId: string): Promise<IlbamMatrix |
     const { data, error } = await supabase
       .rpc('get_ilbam_by_employee_id', {
         employee_id_param: employeeId
-      })
-      .returns<IlbamMatrixDBResponse>();
+      });
 
     if (error) {
       console.error(`Error fetching ILBAM matrix for employee ${employeeId}:`, error);
@@ -68,17 +66,18 @@ export const getByEmployeeId = async (employeeId: string): Promise<IlbamMatrix |
     if (!data) return null;
 
     // Convert from DB format to our application format
+    const typedData = data as IlbamMatrixDBResponse;
     return {
-      id: data.id,
-      employeeId: data.employee_id,
-      businessUnderstanding: data.business_understanding,
-      leadership: data.leadership,
-      innovationCapability: data.innovation_capability,
-      teamwork: data.teamwork,
-      adaptability: data.adaptability,
-      motivation: data.motivation,
-      lastUpdated: data.last_updated,
-      updatedBy: data.updated_by
+      id: typedData.id,
+      employeeId: typedData.employee_id,
+      businessUnderstanding: typedData.business_understanding,
+      leadership: typedData.leadership,
+      innovationCapability: typedData.innovation_capability,
+      teamwork: typedData.teamwork,
+      adaptability: typedData.adaptability,
+      motivation: typedData.motivation,
+      lastUpdated: typedData.last_updated,
+      updatedBy: typedData.updated_by
     };
   } catch (error) {
     console.error(`Error fetching ILBAM matrix for employee ${employeeId}:`, error);
@@ -99,8 +98,7 @@ export const uploadIlbamMatrix = async (matrixData: Omit<IlbamMatrix, 'id'>): Pr
         adaptability_param: matrixData.adaptability,
         motivation_param: matrixData.motivation,
         updated_by_param: matrixData.updatedBy
-      })
-      .returns<IlbamMatrixDBResponse>();
+      });
 
     if (error) {
       console.error('Error uploading ILBAM matrix:', error);
@@ -110,17 +108,18 @@ export const uploadIlbamMatrix = async (matrixData: Omit<IlbamMatrix, 'id'>): Pr
     if (!data) return null;
     
     // Convert from DB format to our application format
+    const typedData = data as IlbamMatrixDBResponse;
     return {
-      id: data.id,
-      employeeId: data.employee_id,
-      businessUnderstanding: data.business_understanding,
-      leadership: data.leadership,
-      innovationCapability: data.innovation_capability,
-      teamwork: data.teamwork,
-      adaptability: data.adaptability,
-      motivation: data.motivation,
-      lastUpdated: data.last_updated,
-      updatedBy: data.updated_by
+      id: typedData.id,
+      employeeId: typedData.employee_id,
+      businessUnderstanding: typedData.business_understanding,
+      leadership: typedData.leadership,
+      innovationCapability: typedData.innovation_capability,
+      teamwork: typedData.teamwork,
+      adaptability: typedData.adaptability,
+      motivation: typedData.motivation,
+      lastUpdated: typedData.last_updated,
+      updatedBy: typedData.updated_by
     };
   } catch (error) {
     console.error('Error uploading ILBAM matrix:', error);
@@ -141,8 +140,7 @@ export const updateIlbamMatrix = async (matrix: IlbamMatrix): Promise<IlbamMatri
         adaptability_param: matrix.adaptability,
         motivation_param: matrix.motivation,
         updated_by_param: matrix.updatedBy
-      })
-      .returns<IlbamMatrixDBResponse>();
+      });
 
     if (error) {
       console.error('Error updating ILBAM matrix:', error);
@@ -152,17 +150,18 @@ export const updateIlbamMatrix = async (matrix: IlbamMatrix): Promise<IlbamMatri
     if (!data) return null;
     
     // Convert from DB format to our application format
+    const typedData = data as IlbamMatrixDBResponse;
     return {
-      id: data.id,
-      employeeId: data.employee_id,
-      businessUnderstanding: data.business_understanding,
-      leadership: data.leadership,
-      innovationCapability: data.innovation_capability,
-      teamwork: data.teamwork,
-      adaptability: data.adaptability,
-      motivation: data.motivation,
-      lastUpdated: data.last_updated,
-      updatedBy: data.updated_by
+      id: typedData.id,
+      employeeId: typedData.employee_id,
+      businessUnderstanding: typedData.business_understanding,
+      leadership: typedData.leadership,
+      innovationCapability: typedData.innovation_capability,
+      teamwork: typedData.teamwork,
+      adaptability: typedData.adaptability,
+      motivation: typedData.motivation,
+      lastUpdated: typedData.last_updated,
+      updatedBy: typedData.updated_by
     };
   } catch (error) {
     console.error('Error updating ILBAM matrix:', error);

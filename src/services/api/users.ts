@@ -18,8 +18,7 @@ export const getAll = async (): Promise<User[]> => {
   try {
     // Use the RPC function to get all users with proper typing
     const { data, error } = await supabase
-      .rpc('get_all_users')
-      .returns<UserRPCResponse[]>();
+      .rpc('get_all_users');
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -30,7 +29,7 @@ export const getAll = async (): Promise<User[]> => {
     if (!data) return [];
     
     // Map the data to the expected User type
-    return (data || []).map(user => ({
+    return (data as UserRPCResponse[] || []).map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',
@@ -91,8 +90,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
   try {
     // Use RPC to get pending users with proper typing
     const { data, error } = await supabase
-      .rpc('get_pending_users')
-      .returns<UserRPCResponse[]>();
+      .rpc('get_pending_users');
 
     if (error) {
       console.error('Error fetching pending users:', error);
@@ -103,7 +101,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
     if (!data) return [];
     
     // Map the data to the expected User type
-    return (data || []).map(user => ({
+    return (data as UserRPCResponse[] || []).map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',

@@ -18,8 +18,8 @@ export const getAll = async (): Promise<User[]> => {
   try {
     // Use the RPC function to get all users with proper typing
     const { data, error } = await supabase
-      .from('get_all_users')
-      .select('*');
+      .rpc('get_all_users')
+      .returns<UserRPCResponse[]>();
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -50,8 +50,7 @@ export const approveUser = async (userId: string, role: UserRole): Promise<boole
   try {
     // Update user role and status using RPC with proper typing
     const { error } = await supabase
-      .from('approve_user')
-      .insert({
+      .rpc('approve_user', {
         user_id: userId,
         user_role: role
       });
@@ -72,8 +71,7 @@ export const assignMentorRole = async (userId: string): Promise<boolean> => {
   try {
     // Update user role using RPC with proper typing
     const { error } = await supabase
-      .from('assign_mentor_role')
-      .insert({
+      .rpc('assign_mentor_role', {
         user_id: userId
       });
 
@@ -93,8 +91,8 @@ export const getPendingUsers = async (): Promise<User[]> => {
   try {
     // Use RPC to get pending users with proper typing
     const { data, error } = await supabase
-      .from('get_pending_users')
-      .select('*');
+      .rpc('get_pending_users')
+      .returns<UserRPCResponse[]>();
 
     if (error) {
       console.error('Error fetching pending users:', error);

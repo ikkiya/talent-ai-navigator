@@ -141,7 +141,12 @@ export const getEmployeeCompetencyMatrix = async (employeeId: string): Promise<R
       return null;
     }
     
-    return data?.skills || null;
+    // Ensure we're returning a Record<string, number> type
+    if (data?.skills && typeof data.skills === 'object' && !Array.isArray(data.skills)) {
+      return data.skills as Record<string, number>;
+    }
+    
+    return null;
   } catch (error) {
     console.error('Error fetching competency matrix:', error);
     return null;
@@ -162,7 +167,12 @@ export const getEmployeeRetentionMatrix = async (employeeId: string): Promise<Re
       return null;
     }
     
-    return data?.factors || null;
+    // Ensure we're returning a Record<string, number> type
+    if (data?.factors && typeof data.factors === 'object' && !Array.isArray(data.factors)) {
+      return data.factors as Record<string, number>;
+    }
+    
+    return null;
   } catch (error) {
     console.error('Error fetching retention matrix:', error);
     return null;

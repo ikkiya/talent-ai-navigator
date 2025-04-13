@@ -16,8 +16,8 @@ interface IlbamMatrixDBResponse {
   updated_by: string;
 }
 
-// Generic type for RPC functions to help with TypeScript
-type RPCResponse<T> = T[];
+// Generic type for RPC functions
+type RPCResponse<T> = T;
 
 // Get all ILBAM matrices
 export const getAll = async (): Promise<IlbamMatrix[]> => {
@@ -25,7 +25,7 @@ export const getAll = async (): Promise<IlbamMatrix[]> => {
     // Use RPC with proper type declaration
     const { data, error } = await supabase
       .rpc('get_all_ilbam_matrices')
-      .returns<RPCResponse<IlbamMatrixDBResponse>>();
+      .returns<IlbamMatrixDBResponse[]>();
 
     if (error) {
       console.error('Error fetching ILBAM matrices:', error);

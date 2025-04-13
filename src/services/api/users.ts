@@ -13,8 +13,8 @@ interface UserRPCResponse {
   last_sign_in_at: string | null;
 }
 
-// Generic type for RPC functions to help with TypeScript
-type RPCResponse<T> = T[];
+// Generic type for RPC functions
+type RPCResponse<T> = T;
 
 // User management functions
 export const getAll = async (): Promise<User[]> => {
@@ -22,7 +22,7 @@ export const getAll = async (): Promise<User[]> => {
     // Call RPC function with proper type declaration
     const { data, error } = await supabase
       .rpc('get_all_users')
-      .returns<RPCResponse<UserRPCResponse>>();
+      .returns<UserRPCResponse[]>();
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -97,7 +97,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
     // Use RPC with proper type declaration
     const { data, error } = await supabase
       .rpc('get_pending_users')
-      .returns<RPCResponse<UserRPCResponse>>();
+      .returns<UserRPCResponse[]>();
 
     if (error) {
       console.error('Error fetching pending users:', error);

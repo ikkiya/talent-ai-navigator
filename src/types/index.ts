@@ -1,3 +1,4 @@
+
 export type UserRole = 'admin' | 'manager' | 'mentor';
 export type UserStatus = 'active' | 'inactive' | 'invited';
 
@@ -37,7 +38,21 @@ export interface Employee {
   projectAssignments: ProjectAssignment[];
   competencyMatrix?: Record<string, number>;
   retentionMatrix?: Record<string, number>;
+  ilbamMatrix?: IlbamMatrix;
   notes?: string;
+}
+
+export interface IlbamMatrix {
+  id: string;
+  employeeId: string;
+  businessUnderstanding: number;
+  leadership: number;
+  innovationCapability: number;
+  teamwork: number;
+  adaptability: number;
+  motivation: number;
+  lastUpdated: string;
+  updatedBy: string;
 }
 
 export interface ProjectAssignment {

@@ -11,9 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Filter, Plus, Search, UserPlus } from 'lucide-react';
+import { Filter, Plus, Search, UserPlus, BarChart4, FileSpreadsheet } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Employee } from '@/types';
+import { Employee, IlbamMatrix } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import IlbamMatrixUpload from '@/components/ilbam/IlbamMatrixUpload';
+import IlbamMatrixTable from '@/components/ilbam/IlbamMatrixTable';
+import IlbamMatrixDialog from '@/components/ilbam/IlbamMatrixDialog';
 
 const generateEmployeeId = () => {
   return 'EMP' + Math.floor(Math.random() * 9000 + 1000);
@@ -123,13 +127,22 @@ const EmployeeForm = ({
 
 const TalentPool = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [ilbamUploadOpen, setIlbamUploadOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     department: '',
     status: '',
   });
+  const [activeTab, setActiveTab] = useState('employees');
+  const [selectedMatrix, setSelectedMatrix] = useState<IlbamMatrix | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [matrixDialogMode, setMatrixDialogMode] = useState<'view' | 'edit'>('view');
+  const [matrixDialogOpen, setMatrixDialogOpen] = useState(false);
+  
+  const { auth } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isAdmin = auth.user?.role === 'admin';
 
   const { data: employees = [], isLoading, error } = useQuery<Employee[]>({
     queryKey: ['employees'],
@@ -178,107 +191,149 @@ const TalentPool = () => {
 
     return matchesSearch && matchesFilters;
   });
+  
+  const handleViewMatrix = (matrix: IlbamMatrix, employee: Employee) => {
+    setSelectedMatrix(matrix);
+    setSelectedEmployee(employee);
+    setMatrixDialogMode('view');
+    setMatrixDialogOpen(true);
+  };
+  
+  const handleEditMatrix = (matrix: IlbamMatrix, employee: Employee) => {
+    setSelectedMatrix(matrix);
+    setSelectedEmployee(employee);
+    setMatrixDialogMode('edit');
+    setMatrixDialogOpen(true);
+  };
 
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Talent Pool</h1>
-          <Button onClick={() => setAddDialogOpen(true)}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add Employee
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setAddDialogOpen(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add Employee
+            </Button>
+            {isAdmin && (
+              <Button 
+                variant="outline" 
+                onClick={() => setIlbamUploadOpen(true)}
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Upload ILBAM Matrix
+              </Button>
+            )}
+          </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Employee List</CardTitle>
-            <CardDescription>Manage your team members and their project assignments.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between py-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search employees..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
-              </div>
-              <div className="space-x-2">
-                <Select onValueChange={(value) => setFilters({ ...filters, department: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all-departments">All Departments</SelectItem>
-                    {Array.from(new Set(employees.map((emp) => emp.department))).map((dept) => (
-                      <SelectItem key={dept} value={dept}>
-                        {dept}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select onValueChange={(value) => setFilters({ ...filters, status: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all-statuses">All Statuses</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="onLeave">On Leave</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center">Loading...</TableCell>
-                  </TableRow>
-                ) : error ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center">Error: {error.message}</TableCell>
-                  </TableRow>
-                ) : filteredEmployees.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center">No employees found.</TableCell>
-                  </TableRow>
-                ) : (
-                  filteredEmployees.map((employee) => (
-                    <TableRow key={employee.id}>
-                      <TableCell>{employee.firstName} {employee.lastName}</TableCell>
-                      <TableCell>{employee.email}</TableCell>
-                      <TableCell>{employee.position}</TableCell>
-                      <TableCell>{employee.department}</TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          employee.status === 'active' ? 'default' :
-                            employee.status === 'inactive' ? 'destructive' :
-                              'outline'
-                        }>
-                          {employee.status}
-                        </Badge>
-                      </TableCell>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="employees">Employee List</TabsTrigger>
+            <TabsTrigger value="ilbam">ILBAM Matrices</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="employees">
+            <Card>
+              <CardHeader>
+                <CardTitle>Employee List</CardTitle>
+                <CardDescription>Manage your team members and their project assignments.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between py-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search employees..."
+                      className="pl-8"
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                    />
+                  </div>
+                  <div className="space-x-2">
+                    <Select onValueChange={(value) => setFilters({ ...filters, department: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Filter by Department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all-departments">All Departments</SelectItem>
+                        {Array.from(new Set(employees.map((emp) => emp.department))).map((dept) => (
+                          <SelectItem key={dept} value={dept}>
+                            {dept}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Filter by Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all-statuses">All Statuses</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="onLeave">On Leave</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Department</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center">Loading...</TableCell>
+                      </TableRow>
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center">Error: {error.message}</TableCell>
+                      </TableRow>
+                    ) : filteredEmployees.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center">No employees found.</TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredEmployees.map((employee) => (
+                        <TableRow key={employee.id}>
+                          <TableCell>{employee.firstName} {employee.lastName}</TableCell>
+                          <TableCell>{employee.email}</TableCell>
+                          <TableCell>{employee.position}</TableCell>
+                          <TableCell>{employee.department}</TableCell>
+                          <TableCell>
+                            <Badge variant={
+                              employee.status === 'active' ? 'default' :
+                                employee.status === 'inactive' ? 'destructive' :
+                                  'outline'
+                            }>
+                              {employee.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="ilbam">
+            <IlbamMatrixTable 
+              employees={employees}
+              onEdit={handleEditMatrix}
+              onView={handleViewMatrix}
+            />
+          </TabsContent>
+        </Tabs>
 
         <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
           <DialogContent>
@@ -291,6 +346,22 @@ const TalentPool = () => {
             <EmployeeForm onSubmit={handleAddEmployee} />
           </DialogContent>
         </Dialog>
+        
+        {isAdmin && (
+          <IlbamMatrixUpload 
+            open={ilbamUploadOpen}
+            onClose={() => setIlbamUploadOpen(false)}
+            employees={employees}
+          />
+        )}
+        
+        <IlbamMatrixDialog 
+          matrix={selectedMatrix}
+          employee={selectedEmployee}
+          isOpen={matrixDialogOpen}
+          onClose={() => setMatrixDialogOpen(false)}
+          mode={matrixDialogMode}
+        />
       </div>
     </Layout>
   );

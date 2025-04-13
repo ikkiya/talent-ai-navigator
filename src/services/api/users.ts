@@ -13,16 +13,12 @@ interface UserRPCResponse {
   last_sign_in_at: string | null;
 }
 
-// Generic type for RPC functions
-type RPCResponse<T> = T;
-
 // User management functions
 export const getAll = async (): Promise<User[]> => {
   try {
     // Call RPC function with proper type declaration
     const { data, error } = await supabase
-      .rpc('get_all_users')
-      .returns<UserRPCResponse[]>();
+      .rpc('get_all_users');
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -33,7 +29,7 @@ export const getAll = async (): Promise<User[]> => {
     if (!data) return [];
     
     // Map the data to the expected User type
-    return (data || []).map(user => ({
+    return (data as UserRPCResponse[] || []).map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',
@@ -56,8 +52,7 @@ export const approveUser = async (userId: string, role: UserRole): Promise<boole
       .rpc('approve_user', {
         user_id: userId,
         user_role: role
-      })
-      .returns<null>();
+      });
 
     if (error) {
       console.error('Error approving user:', error);
@@ -77,8 +72,7 @@ export const assignMentorRole = async (userId: string): Promise<boolean> => {
     const { error } = await supabase
       .rpc('assign_mentor_role', {
         user_id: userId
-      })
-      .returns<null>();
+      });
 
     if (error) {
       console.error('Error assigning mentor role:', error);
@@ -96,8 +90,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
   try {
     // Use RPC with proper type declaration
     const { data, error } = await supabase
-      .rpc('get_pending_users')
-      .returns<UserRPCResponse[]>();
+      .rpc('get_pending_users');
 
     if (error) {
       console.error('Error fetching pending users:', error);
@@ -108,7 +101,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
     if (!data) return [];
     
     // Map the data to the expected User type
-    return (data || []).map(user => ({
+    return (data as UserRPCResponse[] || []).map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',

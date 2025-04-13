@@ -13,12 +13,16 @@ interface UserRPCResponse {
   last_sign_in_at: string | null;
 }
 
+// Generic type for RPC functions to help with TypeScript
+type RPCResponse<T> = T[];
+
 // User management functions
 export const getAll = async (): Promise<User[]> => {
   try {
-    // Use the RPC function to get all users with proper typing
+    // Call RPC function with proper type declaration
     const { data, error } = await supabase
-      .rpc('get_all_users');
+      .rpc('get_all_users')
+      .returns<RPCResponse<UserRPCResponse>>();
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -29,7 +33,7 @@ export const getAll = async (): Promise<User[]> => {
     if (!data) return [];
     
     // Map the data to the expected User type
-    return (data as UserRPCResponse[] || []).map(user => ({
+    return (data || []).map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',
@@ -47,12 +51,13 @@ export const getAll = async (): Promise<User[]> => {
 
 export const approveUser = async (userId: string, role: UserRole): Promise<boolean> => {
   try {
-    // Update user role and status using RPC with proper typing
+    // Use RPC with proper type declaration
     const { error } = await supabase
       .rpc('approve_user', {
         user_id: userId,
         user_role: role
-      });
+      })
+      .returns<null>();
 
     if (error) {
       console.error('Error approving user:', error);
@@ -68,11 +73,12 @@ export const approveUser = async (userId: string, role: UserRole): Promise<boole
 
 export const assignMentorRole = async (userId: string): Promise<boolean> => {
   try {
-    // Update user role using RPC with proper typing
+    // Update user role using RPC with proper type declaration
     const { error } = await supabase
       .rpc('assign_mentor_role', {
         user_id: userId
-      });
+      })
+      .returns<null>();
 
     if (error) {
       console.error('Error assigning mentor role:', error);
@@ -88,9 +94,10 @@ export const assignMentorRole = async (userId: string): Promise<boolean> => {
 
 export const getPendingUsers = async (): Promise<User[]> => {
   try {
-    // Use RPC to get pending users with proper typing
+    // Use RPC with proper type declaration
     const { data, error } = await supabase
-      .rpc('get_pending_users');
+      .rpc('get_pending_users')
+      .returns<RPCResponse<UserRPCResponse>>();
 
     if (error) {
       console.error('Error fetching pending users:', error);
@@ -101,7 +108,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
     if (!data) return [];
     
     // Map the data to the expected User type
-    return (data as UserRPCResponse[] || []).map(user => ({
+    return (data || []).map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',

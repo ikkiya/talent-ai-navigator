@@ -65,23 +65,58 @@ export const updateEmployeeMatrix = async (
       return { success: false };
     }
     
-    // Prepare the update object
-    const updateObj: Record<string, any> = {};
+    // Decide which table to update based on matrix type
+    const tableName = matrixType === 'competency' ? 'competency_matrices' : 'retention_matrices';
+    const dataField = matrixType === 'competency' ? 'skills' : 'factors';
     
-    if (matrixType === 'competency') {
-      updateObj.competencyMatrix = matrixData;
-    } else {
-      updateObj.retentionMatrix = matrixData;
+    // Check if there's an existing matrix for this employee
+    const { data: existingMatrix, error: matrixError } = await supabase
+      .from(tableName)
+      .select('*')
+      .eq('employee_id', employeeId)
+      .single();
+    
+    if (matrixError && !matrixError.message.includes('No rows found')) {
+      console.error(`Error checking existing ${matrixType} matrix:`, matrixError);
+      return { success: false };
     }
     
-    // Update the employee record
-    const { error: updateError } = await supabase
-      .from('employees')
-      .update(updateObj)
-      .eq('id', employeeId);
+    let updateResult;
     
-    if (updateError) {
-      console.error('Error updating matrix data:', updateError);
+    if (existingMatrix) {
+      // Update existing matrix
+      updateResult = await supabase
+        .from(tableName)
+        .update({ 
+          [dataField]: matrixData,
+          last_updated: new Date().toISOString()
+        })
+        .eq('id', existingMatrix.id);
+    } else {
+      // Create new matrix
+      const insertData: any = {
+        employee_id: employeeId,
+        [dataField]: matrixData,
+        last_updated: new Date().toISOString()
+      };
+      
+      // Add risk_score for retention matrices
+      if (matrixType === 'retention') {
+        // Calculate average risk score
+        const values = Object.values(matrixData);
+        const avgScore = values.length > 0 
+          ? values.reduce((sum, val) => sum + val, 0) / values.length
+          : 0;
+        insertData.risk_score = avgScore;
+      }
+      
+      updateResult = await supabase
+        .from(tableName)
+        .insert(insertData);
+    }
+    
+    if (updateResult.error) {
+      console.error(`Error updating ${matrixType} matrix:`, updateResult.error);
       return { success: false };
     }
     
@@ -96,9 +131,9 @@ export const updateEmployeeMatrix = async (
 export const getEmployeeCompetencyMatrix = async (employeeId: string): Promise<Record<string, number> | null> => {
   try {
     const { data, error } = await supabase
-      .from('employees')
-      .select('competencyMatrix')
-      .eq('id', employeeId)
+      .from('competency_matrices')
+      .select('skills')
+      .eq('employee_id', employeeId)
       .single();
     
     if (error) {
@@ -106,7 +141,7 @@ export const getEmployeeCompetencyMatrix = async (employeeId: string): Promise<R
       return null;
     }
     
-    return data?.competencyMatrix || null;
+    return data?.skills || null;
   } catch (error) {
     console.error('Error fetching competency matrix:', error);
     return null;
@@ -117,9 +152,9 @@ export const getEmployeeCompetencyMatrix = async (employeeId: string): Promise<R
 export const getEmployeeRetentionMatrix = async (employeeId: string): Promise<Record<string, number> | null> => {
   try {
     const { data, error } = await supabase
-      .from('employees')
-      .select('retentionMatrix')
-      .eq('id', employeeId)
+      .from('retention_matrices')
+      .select('factors')
+      .eq('employee_id', employeeId)
       .single();
     
     if (error) {
@@ -127,7 +162,7 @@ export const getEmployeeRetentionMatrix = async (employeeId: string): Promise<Re
       return null;
     }
     
-    return data?.retentionMatrix || null;
+    return data?.factors || null;
   } catch (error) {
     console.error('Error fetching retention matrix:', error);
     return null;

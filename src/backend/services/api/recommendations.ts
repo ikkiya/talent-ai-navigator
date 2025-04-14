@@ -94,3 +94,24 @@ export const getTeamRecommendations = async (projectId: string): Promise<TeamRec
     };
   }
 };
+
+// Get recommendations by employee ID
+export const getByEmployeeId = async (employeeId: string): Promise<TeamRecommendation[]> => {
+  try {
+    // This would be a call to get recommendations for a specific employee
+    // For now, we'll return a mock implementation
+    const allRecommendations = await getAll();
+    
+    // Filter recommendations that might be related to this employee
+    // This is a simplistic implementation - in a real app, you'd query your database
+    const filteredRecommendations = allRecommendations.filter(recommendation => 
+      recommendation.recommendedEmployees.some(emp => emp.id === employeeId) ||
+      recommendation.alternativeEmployees.some(emp => emp.id === employeeId)
+    );
+    
+    return filteredRecommendations;
+  } catch (error) {
+    console.error(`Error fetching recommendations for employee ${employeeId}:`, error);
+    return [];
+  }
+};

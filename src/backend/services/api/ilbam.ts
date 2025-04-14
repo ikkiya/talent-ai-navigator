@@ -19,9 +19,8 @@ interface IlbamMatrixDBResponse {
 // Get all ILBAM matrices
 export const getAll = async (): Promise<IlbamMatrix[]> => {
   try {
-    // Use RPC with type assertion
-    const { data, error } = await supabase
-      .rpc('get_all_ilbam_matrices') as { data: IlbamMatrixDBResponse[] | null, error: any };
+    // Use RPC with explicit type declaration
+    const { data, error } = await supabase.rpc<IlbamMatrixDBResponse[]>('get_all_ilbam_matrices');
 
     if (error) {
       console.error('Error fetching ILBAM matrices:', error);
@@ -53,11 +52,10 @@ export const getAll = async (): Promise<IlbamMatrix[]> => {
 // Get ILBAM matrix by employee ID
 export const getByEmployeeId = async (employeeId: string): Promise<IlbamMatrix | null> => {
   try {
-    // Use RPC with type assertion
-    const { data, error } = await supabase
-      .rpc('get_ilbam_by_employee_id', {
-        employee_id_param: employeeId
-      }) as { data: IlbamMatrixDBResponse | null, error: any };
+    // Use RPC with explicit type declaration
+    const { data, error } = await supabase.rpc<IlbamMatrixDBResponse>('get_ilbam_by_employee_id', {
+      employee_id_param: employeeId
+    });
 
     if (error) {
       console.error(`Error fetching ILBAM matrix for employee ${employeeId}:`, error);
@@ -88,18 +86,17 @@ export const getByEmployeeId = async (employeeId: string): Promise<IlbamMatrix |
 // Upload ILBAM matrix data
 export const uploadIlbamMatrix = async (matrixData: Omit<IlbamMatrix, 'id'>): Promise<IlbamMatrix | null> => {
   try {
-    // Use RPC with type assertion
-    const { data, error } = await supabase
-      .rpc('upsert_ilbam_matrix', {
-        employee_id_param: matrixData.employeeId,
-        business_understanding_param: matrixData.businessUnderstanding,
-        leadership_param: matrixData.leadership,
-        innovation_capability_param: matrixData.innovationCapability,
-        teamwork_param: matrixData.teamwork,
-        adaptability_param: matrixData.adaptability,
-        motivation_param: matrixData.motivation,
-        updated_by_param: matrixData.updatedBy
-      }) as { data: IlbamMatrixDBResponse | null, error: any };
+    // Use RPC with explicit type declaration
+    const { data, error } = await supabase.rpc<IlbamMatrixDBResponse>('upsert_ilbam_matrix', {
+      employee_id_param: matrixData.employeeId,
+      business_understanding_param: matrixData.businessUnderstanding,
+      leadership_param: matrixData.leadership,
+      innovation_capability_param: matrixData.innovationCapability,
+      teamwork_param: matrixData.teamwork,
+      adaptability_param: matrixData.adaptability,
+      motivation_param: matrixData.motivation,
+      updated_by_param: matrixData.updatedBy
+    });
 
     if (error) {
       console.error('Error uploading ILBAM matrix:', error);
@@ -130,18 +127,17 @@ export const uploadIlbamMatrix = async (matrixData: Omit<IlbamMatrix, 'id'>): Pr
 // Update ILBAM matrix
 export const updateIlbamMatrix = async (matrix: IlbamMatrix): Promise<IlbamMatrix | null> => {
   try {
-    // Use RPC with type assertion
-    const { data, error } = await supabase
-      .rpc('update_ilbam_matrix', {
-        matrix_id_param: matrix.id,
-        business_understanding_param: matrix.businessUnderstanding,
-        leadership_param: matrix.leadership,
-        innovation_capability_param: matrix.innovationCapability,
-        teamwork_param: matrix.teamwork,
-        adaptability_param: matrix.adaptability,
-        motivation_param: matrix.motivation,
-        updated_by_param: matrix.updatedBy
-      }) as { data: IlbamMatrixDBResponse | null, error: any };
+    // Use RPC with explicit type declaration
+    const { data, error } = await supabase.rpc<IlbamMatrixDBResponse>('update_ilbam_matrix', {
+      matrix_id_param: matrix.id,
+      business_understanding_param: matrix.businessUnderstanding,
+      leadership_param: matrix.leadership,
+      innovation_capability_param: matrix.innovationCapability,
+      teamwork_param: matrix.teamwork,
+      adaptability_param: matrix.adaptability,
+      motivation_param: matrix.motivation,
+      updated_by_param: matrix.updatedBy
+    });
 
     if (error) {
       console.error('Error updating ILBAM matrix:', error);

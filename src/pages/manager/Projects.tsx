@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Briefcase, Calendar, CheckCircle, CircleDollarSign, Loader2, XCircle } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useQuery } from '@tanstack/react-query';
 
 const Projects = () => {
   const { data: projects = [], isLoading } = useQuery<Project[]>({

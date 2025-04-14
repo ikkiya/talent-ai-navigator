@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import { api } from '@/backend/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { Employee, Recommendation } from '@/types';
+import { Employee, TeamRecommendation } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"

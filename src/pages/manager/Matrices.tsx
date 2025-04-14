@@ -1,10 +1,11 @@
+
 import React from 'react';
 import Layout from '@/components/Layout';
 import { api } from '@/backend/services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileSpreadsheet, Upload } from 'lucide-react';
-import { FlexibleMatrixUpload } from '@/components/matrices/FlexibleMatrixUpload';
+import FlexibleMatrixUpload from '@/components/matrices/FlexibleMatrixUpload';
 import { useState } from 'react';
 import { MatrixColumn } from '@/types';
 

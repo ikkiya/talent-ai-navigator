@@ -30,6 +30,7 @@ export interface Employee {
   email: string;
   department: string;
   position: string;
+  location: string; // Add the missing location property
   managerId?: string;
   mentorId?: string;
   hireDate: string;

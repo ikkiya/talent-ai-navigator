@@ -1,9 +1,7 @@
-
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/services/api';
-import { Project } from '@/types';
 import Layout from '@/components/Layout';
+import { api } from '@/backend/services/api';
+import { Project } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +19,6 @@ const Projects = () => {
     queryFn: api.employees.getAll,
   });
 
-  // Fix type issues by adding proper typings and null checks
   const activeProjects = projects.filter(project => project.status === 'active') || [];
 
   if (isLoading || isLoadingEmployees) {
@@ -76,9 +73,8 @@ const Projects = () => {
                 <div className="text-2xl font-bold">
                   {projects?.length ? 
                     (projects.reduce((acc, project) => {
-                      // Assuming each project has a budget and expenses
-                      const budget = 100000; // Example budget
-                      const expenses = 50000; // Example expenses
+                      const budget = 100000;
+                      const expenses = 50000;
                       return acc + (expenses / budget);
                     }, 0) / projects.length).toFixed(1) + '%' 
                     : '0%'}
@@ -124,12 +120,10 @@ const Projects = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        {/* Fix the type error by checking if teamMembers is an array of strings (IDs) */}
                         {Array.isArray(project.teamMembers) && project.teamMembers.slice(0, 3).map((memberId) => {
-                          // Check if memberId is a string (ID) and find the employee by ID
                           const member = typeof memberId === 'string' ? 
                             employees.find((emp) => emp.id === memberId) : 
-                            memberId; // If it's already an Employee object
+                            memberId;
                             
                           return member ? (
                             <Avatar key={member.id} className="h-6 w-6">

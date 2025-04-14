@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/services/api';
+import { api } from '@/backend/services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';

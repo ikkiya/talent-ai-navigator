@@ -1,105 +1,80 @@
-
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/services/api';
-import { Employee } from '@/types';
+import React from 'react';
 import Layout from '@/components/Layout';
+import { api } from '@/backend/services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, Briefcase, User, Users, UserCheck } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Employee } from '@/types';
+import { useQuery } from '@tanstack/react-query';
 
 const Employees = () => {
-  const { toast } = useToast();
-  const { auth } = useAuth();
-  const queryClient = useQueryClient();
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
-  const [isAssignMentorDialogOpen, setIsAssignMentorDialogOpen] = useState(false);
-
-  const { data: employees = [], isLoading: isLoadingEmployees, error } = useQuery({
+  const { data: employees = [], isLoading } = useQuery({
     queryKey: ['employees'],
     queryFn: api.employees.getAll,
   });
 
-  const assignMentorMutation = useMutation({
-    mutationFn: (userId: string) => api.users.assignMentorRole(userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      toast({
-        title: "Mentor role assigned",
-        description: `${selectedEmployee?.firstName} ${selectedEmployee?.lastName} is now a mentor.`
-      });
-      setIsAssignMentorDialogOpen(false);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error assigning mentor role",
-        description: `There was an error: ${error}`,
-        variant: "destructive"
-      });
-    }
+  const totalEmployees = employees?.length || 0;
+
+  const departmentCount = employees?.reduce((acc, employee) => {
+    acc[employee.department] = (acc[employee.department] || 0) + 1;
+    return acc;
+  }, {}) || {};
+
+  const departmentList = Object.keys(departmentCount).map(dept => ({
+    name: dept,
+    count: departmentCount[dept],
+  }));
+
+  const locationCount = employees?.reduce((acc, employee) => {
+    acc[employee.location] = (acc[employee.location] || 0) + 1;
+    return acc;
+  }, {}) || {};
+
+  const locationList = Object.keys(locationCount).map(location => ({
+    name: location,
+    count: locationCount[location],
+  }));
+
+  const statusCount = employees?.reduce((acc, employee) => {
+    acc[employee.status] = (acc[employee.status] || 0) + 1;
+    return acc;
+  }, {}) || {};
+
+  const statusList = Object.keys(statusCount).map(status => ({
+    name: status,
+    count: statusCount[status],
+  }));
+
+  const calculateAverageRetentionRisk = (employee: Employee): number => {
+    if (!employee.retentionMatrix) return 0;
+    const values = Object.values(employee.retentionMatrix);
+    return values.reduce((sum, val) => sum + val, 0) / values.length;
+  };
+
+  const getRiskLevel = (avgScore: number): string => {
+    if (avgScore <= 2) return 'High Risk';
+    if (avgScore <= 3) return 'Medium Risk';
+    return 'Low Risk';
+  };
+
+  const getRiskColor = (avgScore: number): string => {
+    if (avgScore <= 2) return 'red';
+    if (avgScore <= 3) return 'yellow';
+    return 'green';
+  };
+
+  const sortedEmployees = [...employees].sort((a, b) => {
+    const riskA = calculateAverageRetentionRisk(a);
+    const riskB = calculateAverageRetentionRisk(b);
+    return riskA - riskB;
   });
 
-  const handleAssignMentor = () => {
-    if (selectedEmployee) {
-      assignMentorMutation.mutate(selectedEmployee.id);
-    }
-  };
-
-  const departmentStats = employees.length > 0 
-    ? employees.reduce<Record<string, number>>((acc, employee) => {
-        acc[employee.department] = (acc[employee.department] || 0) + 1;
-        return acc;
-      }, {})
-    : {};
-
-  const statusCount = {
-    active: employees.length > 0 
-      ? employees.reduce((count, emp) => count + (emp.status === 'active' ? 1 : 0), 0)
-      : 0,
-    onLeave: employees.length > 0 
-      ? employees.reduce((count, emp) => count + (emp.status === 'onLeave' ? 1 : 0), 0)
-      : 0,
-    inactive: employees.length > 0 
-      ? employees.reduce((count, emp) => count + (emp.status === 'inactive' ? 1 : 0), 0)
-      : 0,
-  };
-
-  const isManager = auth.user?.role === 'manager' || auth.user?.role === 'admin';
-
-  if (isLoadingEmployees) {
+  if (isLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold mb-2">Loading employees...</h2>
-            <p className="text-muted-foreground">Please wait while we fetch the employee data.</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (error) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold mb-2">Error loading employees</h2>
-            <p className="text-destructive">An error occurred while fetching employee data.</p>
-            <Button 
-              onClick={() => window.location.reload()} 
-              variant="outline" 
-              className="mt-4"
-            >
-              Retry
-            </Button>
-          </div>
+        <div className="flex items-center justify-center h-64">
+          <div>Loading employees data...</div>
         </div>
       </Layout>
     );
@@ -107,60 +82,73 @@ const Employees = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Manage Employees</h1>
-          <Button onClick={() => toast({ title: "Feature coming soon", description: "Employee creation will be available in a future update." })}>
-            <User className="mr-2 h-4 w-4" />
-            Add Employee
-          </Button>
+      <div className="space-y-6 animate-fade-in">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Employees</h1>
+          <p className="text-muted-foreground">
+            Manage your team and view employee details.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
+            <CardHeader>
+              <CardTitle>Total Employees</CardTitle>
+              <CardDescription>All employees in the system</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl font-bold">{employees?.length || 0}</div>
-                <Users className="h-5 w-5 text-muted-foreground" />
-              </div>
+              <div className="text-2xl font-bold">{totalEmployees}</div>
             </CardContent>
           </Card>
-          
+
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Project Assignments</CardTitle>
+            <CardHeader>
+              <CardTitle>Department Distribution</CardTitle>
+              <CardDescription>Number of employees per department</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl font-bold">
-                  {employees?.reduce((acc, emp) => acc + emp.projectAssignments.length, 0) || 0}
-                </div>
-                <Briefcase className="h-5 w-5 text-muted-foreground" />
-              </div>
+              <ul className="list-none space-y-2">
+                {departmentList.map(dept => (
+                  <li key={dept.name} className="flex items-center justify-between">
+                    <span>{dept.name}</span>
+                    <span className="font-medium">{dept.count}</span>
+                  </li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
-          
+
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Avg. Utilization</CardTitle>
+            <CardHeader>
+              <CardTitle>Location Distribution</CardTitle>
+              <CardDescription>Number of employees per location</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl font-bold">
-                  {employees?.length ? 
-                    (employees.reduce((acc, emp) => {
-                      const totalUtilization = emp.projectAssignments.reduce(
-                        (total, assignment) => total + assignment.utilizationPercentage, 0
-                      );
-                      return acc + (totalUtilization / Math.max(emp.projectAssignments.length, 1));
-                    }, 0) / employees.length).toFixed(1) + '%' 
-                    : '0%'}
-                </div>
-                <BarChart className="h-5 w-5 text-muted-foreground" />
-              </div>
+              <ul className="list-none space-y-2">
+                {locationList.map(location => (
+                  <li key={location.name} className="flex items-center justify-between">
+                    <span>{location.name}</span>
+                    <span className="font-medium">{location.count}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Status Distribution</CardTitle>
+              <CardDescription>Number of employees per status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="list-none space-y-2">
+                {statusList.map(status => (
+                  <li key={status.name} className="flex items-center justify-between">
+                    <span>{status.name}</span>
+                    <span className="font-medium">{status.count}</span>
+                  </li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
         </div>
@@ -168,7 +156,7 @@ const Employees = () => {
         <Card>
           <CardHeader>
             <CardTitle>Employee List</CardTitle>
-            <CardDescription>Manage your team members and their project assignments.</CardDescription>
+            <CardDescription>A list of all employees sorted by retention risk</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -177,103 +165,48 @@ const Employees = () => {
                   <TableHead>Employee</TableHead>
                   <TableHead>Position</TableHead>
                   <TableHead>Department</TableHead>
-                  <TableHead>Projects</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Retention Risk</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {employees?.map((employee) => (
-                  <TableRow key={employee.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback>{employee.firstName[0]}{employee.lastName[0]}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{employee.firstName} {employee.lastName}</div>
-                          <div className="text-sm text-muted-foreground">{employee.email}</div>
+                {sortedEmployees.map((employee) => {
+                  const avgRisk = calculateAverageRetentionRisk(employee);
+                  const riskLevel = getRiskLevel(avgRisk);
+                  const riskColor = getRiskColor(avgRisk);
+
+                  return (
+                    <TableRow key={employee.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Avatar>
+                            <AvatarImage src={`https://avatar.vercel.sh/${employee.email}.png`} alt={employee.firstName} />
+                            <AvatarFallback>{employee.firstName[0]}{employee.lastName[0]}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{employee.firstName} {employee.lastName}</div>
+                            <div className="text-xs text-muted-foreground">{employee.email}</div>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{employee.position}</TableCell>
-                    <TableCell>{employee.department}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {employee.projectAssignments.map((assignment) => (
-                          <Badge key={assignment.id} variant="outline" className="whitespace-nowrap">
-                            {assignment.projectName} ({assignment.utilizationPercentage}%)
-                          </Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={
-                          employee.status === 'active' ? 'default' : 
-                          employee.status === 'inactive' ? 'destructive' : 
-                          'outline'
-                        }
-                      >
-                        {employee.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {isManager && (
-                          <Button
-                            variant="ghost" 
-                            size="icon"
-                            title="Assign mentor role"
-                            onClick={() => {
-                              setSelectedEmployee(employee);
-                              setIsAssignMentorDialogOpen(true);
-                            }}
-                          >
-                            <UserCheck className="h-4 w-4 text-blue-600" />
-                          </Button>
-                        )}
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => toast({ 
-                            title: "View employee details", 
-                            description: "Employee details view will be available in a future update." 
-                          })}
-                        >
-                          View
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell>{employee.position}</TableCell>
+                      <TableCell>{employee.department}</TableCell>
+                      <TableCell>{employee.location}</TableCell>
+                      <TableCell>{employee.status}</TableCell>
+                      <TableCell>
+                        <Badge style={{ backgroundColor: riskColor, color: 'white' }}>
+                          {riskLevel}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
       </div>
-
-      {/* Assign Mentor Role Dialog */}
-      {isManager && (
-        <Dialog open={isAssignMentorDialogOpen} onOpenChange={setIsAssignMentorDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Assign Mentor Role</DialogTitle>
-              <DialogDescription>
-                Do you want to assign the mentor role to {selectedEmployee?.firstName} {selectedEmployee?.lastName}?
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAssignMentorDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleAssignMentor}>
-                Assign Mentor Role
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
     </Layout>
   );
 };

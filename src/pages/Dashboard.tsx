@@ -5,7 +5,7 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/services/api';
+import { api } from '@/backend/services/api';
 import { Employee, Project } from '@/types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Users, UserCheck, UserMinus, BriefcaseBusiness, BarChart3, ArrowUpRight } from 'lucide-react';

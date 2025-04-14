@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { api } from '@/services/api';
+import { api } from '@/backend/services/api';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

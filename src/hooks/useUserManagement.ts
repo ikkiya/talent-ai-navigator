@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, UserRole } from '@/types';
-import * as usersApi from '@/backend/services/api';
+import { getAllUsers, approveUser, assignMentorRole, getPendingUsers } from '@/backend/services/api';
 import { toast } from '@/hooks/use-toast';
 
 export const useUserManagement = () => {
@@ -18,17 +18,17 @@ export const useUserManagement = () => {
 
   const { data: allUsers = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ['users'],
-    queryFn: usersApi.getAll,
+    queryFn: getAllUsers,
   });
 
   const { data: pendingUsers = [], isLoading: isLoadingPending } = useQuery({
     queryKey: ['pendingUsers'],
-    queryFn: usersApi.getPendingUsers,
+    queryFn: getPendingUsers,
   });
 
   const approveMutation = useMutation({
     mutationFn: ({ userId, role }: { userId: string, role: UserRole }) => 
-      usersApi.approveUser(userId, role),
+      approveUser(userId, role),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['pendingUsers'] });
@@ -48,7 +48,7 @@ export const useUserManagement = () => {
   });
 
   const assignMentorMutation = useMutation({
-    mutationFn: (userId: string) => usersApi.assignMentorRole(userId),
+    mutationFn: (userId: string) => assignMentorRole(userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast({
@@ -72,44 +72,6 @@ export const useUserManagement = () => {
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleDelete = () => {
-    if (selectedUser) {
-      // For mock data only - would use a real API call in production
-      toast({
-        title: "User deleted",
-        description: `${selectedUser.firstName} ${selectedUser.lastName} has been removed from the system.`
-      });
-      setIsDeleteDialogOpen(false);
-      setSelectedUser(null);
-    }
-  };
-
-  const handleInvite = () => {
-    if (inviteEmail) {
-      // For mock data only - would use a real API call in production
-      toast({
-        title: "Invitation sent",
-        description: `An invitation has been sent to ${inviteEmail}.`
-      });
-      setIsInviteDialogOpen(false);
-      setInviteEmail('');
-    }
-  };
-
-  const handleApproveUser = () => {
-    if (selectedUser) {
-      approveMutation.mutate({ userId: selectedUser.id, role: approveRole });
-    }
-  };
-
-  const handleAssignMentor = (userId: string, firstName: string, lastName: string) => {
-    assignMentorMutation.mutate(userId);
-    toast({
-      title: "Assigning mentor role",
-      description: `${firstName} ${lastName} is being assigned the mentor role.`
-    });
-  };
 
   return {
     searchTerm,
@@ -135,9 +97,39 @@ export const useUserManagement = () => {
     filteredUsers,
     isLoadingUsers,
     isLoadingPending,
-    handleDelete,
-    handleInvite,
-    handleApproveUser,
-    handleAssignMentor
+    handleDelete: () => {
+      if (selectedUser) {
+        // For mock data only - would use a real API call in production
+        toast({
+          title: "User deleted",
+          description: `${selectedUser.firstName} ${selectedUser.lastName} has been removed from the system.`
+        });
+        setIsDeleteDialogOpen(false);
+        setSelectedUser(null);
+      }
+    },
+    handleInvite: () => {
+      if (inviteEmail) {
+        // For mock data only - would use a real API call in production
+        toast({
+          title: "Invitation sent",
+          description: `An invitation has been sent to ${inviteEmail}.`
+        });
+        setIsInviteDialogOpen(false);
+        setInviteEmail('');
+      }
+    },
+    handleApproveUser: () => {
+      if (selectedUser) {
+        approveMutation.mutate({ userId: selectedUser.id, role: approveRole });
+      }
+    },
+    handleAssignMentor: (userId: string, firstName: string, lastName: string) => {
+      assignMentorMutation.mutate(userId);
+      toast({
+        title: "Assigning mentor role",
+        description: `${firstName} ${lastName} is being assigned the mentor role.`
+      });
+    }
   };
 };

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { api } from '@/services/api';
+import { api } from '@/backend/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';

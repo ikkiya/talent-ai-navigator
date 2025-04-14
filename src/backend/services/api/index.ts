@@ -6,6 +6,21 @@ import * as filesApi from './files';
 import * as usersApi from './users';
 import * as ilbamApi from './ilbam';
 
+// Export all API functions individually
+export {
+  getAll as getAllUsers,
+  approveUser,
+  assignMentorRole,
+  getPendingUsers
+} from './users';
+
+export {
+  getAll as getAllIlbamMatrices,
+  getByEmployeeId,
+  uploadIlbamMatrix,
+  updateIlbamMatrix
+} from './ilbam';
+
 // Export a properly structured API object
 export const api = {
   employees: employeesApi,

@@ -16,8 +16,8 @@ interface UserRPCResponse {
 // User management functions
 export const getAll = async (): Promise<User[]> => {
   try {
-    // Call RPC function with explicit type declaration
-    const { data, error } = await supabase.rpc<UserRPCResponse[], unknown>('get_all_users');
+    // Call RPC function with simpler approach and type assertion
+    const { data, error } = await supabase.rpc('get_all_users');
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -27,8 +27,11 @@ export const getAll = async (): Promise<User[]> => {
     // If no data is returned, return an empty array
     if (!data) return [];
     
+    // Type assertion and mapping
+    const typedData = data as UserRPCResponse[];
+    
     // Map the data to the expected User type
-    return data.map(user => ({
+    return typedData.map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',
@@ -46,8 +49,8 @@ export const getAll = async (): Promise<User[]> => {
 
 export const approveUser = async (userId: string, role: UserRole): Promise<boolean> => {
   try {
-    // Use RPC with explicit type declaration
-    const { error } = await supabase.rpc<any, unknown>('approve_user', {
+    // Use RPC with simpler approach
+    const { error } = await supabase.rpc('approve_user', {
       user_id: userId,
       user_role: role
     });
@@ -66,8 +69,8 @@ export const approveUser = async (userId: string, role: UserRole): Promise<boole
 
 export const assignMentorRole = async (userId: string): Promise<boolean> => {
   try {
-    // Update user role using RPC with explicit type declaration
-    const { error } = await supabase.rpc<any, unknown>('assign_mentor_role', {
+    // Update user role using RPC with simpler approach
+    const { error } = await supabase.rpc('assign_mentor_role', {
       user_id: userId
     });
 
@@ -85,8 +88,8 @@ export const assignMentorRole = async (userId: string): Promise<boolean> => {
 
 export const getPendingUsers = async (): Promise<User[]> => {
   try {
-    // Use RPC with explicit type declaration
-    const { data, error } = await supabase.rpc<UserRPCResponse[], unknown>('get_pending_users');
+    // Use RPC with simpler approach
+    const { data, error } = await supabase.rpc('get_pending_users');
 
     if (error) {
       console.error('Error fetching pending users:', error);
@@ -96,8 +99,11 @@ export const getPendingUsers = async (): Promise<User[]> => {
     // If no data is returned, return an empty array
     if (!data) return [];
     
+    // Type assertion and mapping
+    const typedData = data as UserRPCResponse[];
+    
     // Map the data to the expected User type
-    return data.map(user => ({
+    return typedData.map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',

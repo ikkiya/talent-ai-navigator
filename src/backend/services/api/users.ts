@@ -16,7 +16,7 @@ interface UserRPCResponse {
 // User management functions
 export const getAll = async (): Promise<User[]> => {
   try {
-    // Call RPC function with proper type declaration
+    // Call RPC function with type assertion
     const { data, error } = await supabase
       .rpc('get_all_users') as { data: UserRPCResponse[] | null, error: any };
 
@@ -29,7 +29,7 @@ export const getAll = async (): Promise<User[]> => {
     if (!data) return [];
     
     // Map the data to the expected User type
-    return (data || []).map(user => ({
+    return data.map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',
@@ -47,7 +47,7 @@ export const getAll = async (): Promise<User[]> => {
 
 export const approveUser = async (userId: string, role: UserRole): Promise<boolean> => {
   try {
-    // Use RPC with proper type declaration
+    // Use RPC with type assertion
     const { error } = await supabase
       .rpc('approve_user', {
         user_id: userId,
@@ -68,7 +68,7 @@ export const approveUser = async (userId: string, role: UserRole): Promise<boole
 
 export const assignMentorRole = async (userId: string): Promise<boolean> => {
   try {
-    // Update user role using RPC with proper type declaration
+    // Update user role using RPC with type assertion
     const { error } = await supabase
       .rpc('assign_mentor_role', {
         user_id: userId
@@ -88,7 +88,7 @@ export const assignMentorRole = async (userId: string): Promise<boolean> => {
 
 export const getPendingUsers = async (): Promise<User[]> => {
   try {
-    // Use RPC with proper type declaration
+    // Use RPC with type assertion
     const { data, error } = await supabase
       .rpc('get_pending_users') as { data: UserRPCResponse[] | null, error: any };
 
@@ -101,7 +101,7 @@ export const getPendingUsers = async (): Promise<User[]> => {
     if (!data) return [];
     
     // Map the data to the expected User type
-    return (data || []).map(user => ({
+    return data.map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',

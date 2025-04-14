@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, UserRole } from '@/types';
-import * as usersApi from '@/services/api/users';
+import * as usersApi from '@/backend/services/api';
 import { toast } from '@/hooks/use-toast';
 
 export const useUserManagement = () => {

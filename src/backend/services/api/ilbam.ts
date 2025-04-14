@@ -19,7 +19,7 @@ interface IlbamMatrixDBResponse {
 // Get all ILBAM matrices
 export const getAll = async (): Promise<IlbamMatrix[]> => {
   try {
-    // Use RPC with proper type declaration
+    // Use RPC with type assertion
     const { data, error } = await supabase
       .rpc('get_all_ilbam_matrices') as { data: IlbamMatrixDBResponse[] | null, error: any };
 
@@ -32,7 +32,7 @@ export const getAll = async (): Promise<IlbamMatrix[]> => {
     if (!data) return [];
     
     // Convert from DB format to our application format
-    return (data || []).map(item => ({
+    return data.map(item => ({
       id: item.id,
       employeeId: item.employee_id,
       businessUnderstanding: item.business_understanding,
@@ -53,7 +53,7 @@ export const getAll = async (): Promise<IlbamMatrix[]> => {
 // Get ILBAM matrix by employee ID
 export const getByEmployeeId = async (employeeId: string): Promise<IlbamMatrix | null> => {
   try {
-    // Use RPC with proper type declaration and parameters
+    // Use RPC with type assertion
     const { data, error } = await supabase
       .rpc('get_ilbam_by_employee_id', {
         employee_id_param: employeeId
@@ -65,21 +65,19 @@ export const getByEmployeeId = async (employeeId: string): Promise<IlbamMatrix |
     }
 
     if (!data) return null;
-
-    const matrixData = data as IlbamMatrixDBResponse;
     
     // Convert from DB format to our application format
     return {
-      id: matrixData.id,
-      employeeId: matrixData.employee_id,
-      businessUnderstanding: matrixData.business_understanding,
-      leadership: matrixData.leadership,
-      innovationCapability: matrixData.innovation_capability,
-      teamwork: matrixData.teamwork,
-      adaptability: matrixData.adaptability,
-      motivation: matrixData.motivation,
-      lastUpdated: matrixData.last_updated,
-      updatedBy: matrixData.updated_by
+      id: data.id,
+      employeeId: data.employee_id,
+      businessUnderstanding: data.business_understanding,
+      leadership: data.leadership,
+      innovationCapability: data.innovation_capability,
+      teamwork: data.teamwork,
+      adaptability: data.adaptability,
+      motivation: data.motivation,
+      lastUpdated: data.last_updated,
+      updatedBy: data.updated_by
     };
   } catch (error) {
     console.error(`Error fetching ILBAM matrix for employee ${employeeId}:`, error);
@@ -90,7 +88,7 @@ export const getByEmployeeId = async (employeeId: string): Promise<IlbamMatrix |
 // Upload ILBAM matrix data
 export const uploadIlbamMatrix = async (matrixData: Omit<IlbamMatrix, 'id'>): Promise<IlbamMatrix | null> => {
   try {
-    // Use RPC with proper type declaration and parameters
+    // Use RPC with type assertion
     const { data, error } = await supabase
       .rpc('upsert_ilbam_matrix', {
         employee_id_param: matrixData.employeeId,
@@ -110,20 +108,18 @@ export const uploadIlbamMatrix = async (matrixData: Omit<IlbamMatrix, 'id'>): Pr
 
     if (!data) return null;
     
-    const responseData = data as IlbamMatrixDBResponse;
-    
     // Convert from DB format to our application format
     return {
-      id: responseData.id,
-      employeeId: responseData.employee_id,
-      businessUnderstanding: responseData.business_understanding,
-      leadership: responseData.leadership,
-      innovationCapability: responseData.innovation_capability,
-      teamwork: responseData.teamwork,
-      adaptability: responseData.adaptability,
-      motivation: responseData.motivation,
-      lastUpdated: responseData.last_updated,
-      updatedBy: responseData.updated_by
+      id: data.id,
+      employeeId: data.employee_id,
+      businessUnderstanding: data.business_understanding,
+      leadership: data.leadership,
+      innovationCapability: data.innovation_capability,
+      teamwork: data.teamwork,
+      adaptability: data.adaptability,
+      motivation: data.motivation,
+      lastUpdated: data.last_updated,
+      updatedBy: data.updated_by
     };
   } catch (error) {
     console.error('Error uploading ILBAM matrix:', error);
@@ -134,7 +130,7 @@ export const uploadIlbamMatrix = async (matrixData: Omit<IlbamMatrix, 'id'>): Pr
 // Update ILBAM matrix
 export const updateIlbamMatrix = async (matrix: IlbamMatrix): Promise<IlbamMatrix | null> => {
   try {
-    // Use RPC with proper type declaration and parameters
+    // Use RPC with type assertion
     const { data, error } = await supabase
       .rpc('update_ilbam_matrix', {
         matrix_id_param: matrix.id,
@@ -154,20 +150,18 @@ export const updateIlbamMatrix = async (matrix: IlbamMatrix): Promise<IlbamMatri
 
     if (!data) return null;
     
-    const responseData = data as IlbamMatrixDBResponse;
-    
     // Convert from DB format to our application format
     return {
-      id: responseData.id,
-      employeeId: responseData.employee_id,
-      businessUnderstanding: responseData.business_understanding,
-      leadership: responseData.leadership,
-      innovationCapability: responseData.innovation_capability,
-      teamwork: responseData.teamwork,
-      adaptability: responseData.adaptability,
-      motivation: responseData.motivation,
-      lastUpdated: responseData.last_updated,
-      updatedBy: responseData.updated_by
+      id: data.id,
+      employeeId: data.employee_id,
+      businessUnderstanding: data.business_understanding,
+      leadership: data.leadership,
+      innovationCapability: data.innovation_capability,
+      teamwork: data.teamwork,
+      adaptability: data.adaptability,
+      motivation: data.motivation,
+      lastUpdated: data.last_updated,
+      updatedBy: data.updated_by
     };
   } catch (error) {
     console.error('Error updating ILBAM matrix:', error);

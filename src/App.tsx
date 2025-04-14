@@ -7,10 +7,10 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
 // Pages
-import Login from "./pages/Login";
+import Login from "./frontend/pages/Login";
 import Dashboard from "./pages/Dashboard";
-import NotFound from "./pages/NotFound";
-import Unauthorized from "./pages/Unauthorized";
+import NotFound from "./frontend/pages/NotFound";
+import Unauthorized from "./frontend/pages/Unauthorized";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 
@@ -22,7 +22,7 @@ import Reports from "./pages/admin/Reports";
 // Manager pages
 import Employees from "./pages/manager/Employees";
 import Projects from "./pages/manager/Projects";
-import Matrices from "./pages/manager/Matrices";
+import Matrices from "./frontend/pages/manager/Matrices";
 
 // Mentor pages
 import Recommendations from "./pages/mentor/Recommendations";

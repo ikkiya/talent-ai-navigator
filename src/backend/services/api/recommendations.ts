@@ -1,88 +1,38 @@
-import { supabase } from '@/lib/supabase';
-import { TeamRecommendation, Employee } from '@/types';
-import { api } from './index';
 
-// Get all recommendations (mock implementation)
+import { TeamRecommendation } from '@/types';
+
+const API_URL = 'http://localhost:8080/api';
+
+// Get all recommendations
 export const getAll = async (): Promise<TeamRecommendation[]> => {
-  // This is a mock implementation
-  // In a real app, you would fetch from your database
-  const allProjects = await api.projects.getAll();
-  
-  // Return an empty array if no projects
-  if (!allProjects || allProjects.length === 0) {
-    return [];
-  }
-  
-  // Create a recommendation for each project
-  const recommendations = await Promise.all(
-    allProjects.slice(0, 3).map(async (project) => {
-      return await getTeamRecommendations(project.id);
-    })
-  );
-  
-  return recommendations;
-};
-
-// Mock implementation for team recommendations
-export const getTeamRecommendations = async (projectId: string): Promise<TeamRecommendation> => {
   try {
-    // Get the project to find required skills
-    const project = await api.projects.getAll().then(projects => 
-      projects.find(p => p.id === projectId)
-    );
+    const response = await fetch(`${API_URL}/recommendations`);
     
-    if (!project) {
-      throw new Error('Project not found');
+    if (!response.ok) {
+      throw new Error(`Error fetching recommendations: ${response.statusText}`);
     }
     
-    // Get all employees for recommendation
-    const allEmployees = await api.employees.getAll();
+    const data = await response.json() as TeamRecommendation[];
     
-    // Filter employees based on skills match
-    const recommendedEmployees = allEmployees.filter(employee => {
-      if (!employee.competencyMatrix) return false;
-      
-      // Check if employee has at least one required skill from the project
-      return project.requiredSkills.some(skill => 
-        employee.competencyMatrix && 
-        employee.competencyMatrix[skill] && 
-        employee.competencyMatrix[skill] >= 3
-      );
-    });
+    return data;
+  } catch (error) {
+    console.error('Error in getRecommendations:', error);
+    return [];
+  }
+};
+
+// Get team recommendations by project ID
+export const getTeamRecommendations = async (projectId: string): Promise<TeamRecommendation> => {
+  try {
+    const response = await fetch(`${API_URL}/recommendations/project/${projectId}`);
     
-    // Find some alternative employees with partial matches
-    const alternativeEmployees = allEmployees.filter(employee => {
-      if (recommendedEmployees.includes(employee)) return false;
-      if (!employee.competencyMatrix) return false;
-      
-      // Check if employee has at least one required skill but with lower proficiency
-      return project.requiredSkills.some(skill => 
-        employee.competencyMatrix && 
-        employee.competencyMatrix[skill] && 
-        employee.competencyMatrix[skill] >= 1 && 
-        employee.competencyMatrix[skill] < 3
-      );
-    }).slice(0, 3);
+    if (!response.ok) {
+      throw new Error(`Error fetching recommendations: ${response.statusText}`);
+    }
     
-    // Create reasoning for recommendations
-    const reasonings: Record<string, string> = {};
-    recommendedEmployees.forEach(employee => {
-      const matchedSkills = project.requiredSkills.filter(skill => 
-        employee.competencyMatrix && 
-        employee.competencyMatrix[skill] && 
-        employee.competencyMatrix[skill] >= 3
-      );
-      
-      reasonings[employee.id] = `${employee.firstName} has strong proficiency in ${matchedSkills.join(', ')}, which are key skills required for this project.`;
-    });
+    const data = await response.json() as TeamRecommendation;
     
-    return {
-      projectId,
-      recommendedEmployees,
-      alternativeEmployees,
-      reasonings,
-      confidenceScore: 85,
-    };
+    return data;
   } catch (error) {
     console.error('Error in getTeamRecommendations:', error);
     return {
@@ -98,18 +48,15 @@ export const getTeamRecommendations = async (projectId: string): Promise<TeamRec
 // Get recommendations by employee ID
 export const getByEmployeeId = async (employeeId: string): Promise<TeamRecommendation[]> => {
   try {
-    // This would be a call to get recommendations for a specific employee
-    // For now, we'll return a mock implementation
-    const allRecommendations = await getAll();
+    const response = await fetch(`${API_URL}/recommendations/employee/${employeeId}`);
     
-    // Filter recommendations that might be related to this employee
-    // This is a simplistic implementation - in a real app, you'd query your database
-    const filteredRecommendations = allRecommendations.filter(recommendation => 
-      recommendation.recommendedEmployees.some(emp => emp.id === employeeId) ||
-      recommendation.alternativeEmployees.some(emp => emp.id === employeeId)
-    );
+    if (!response.ok) {
+      throw new Error(`Error fetching recommendations: ${response.statusText}`);
+    }
     
-    return filteredRecommendations;
+    const data = await response.json() as TeamRecommendation[];
+    
+    return data;
   } catch (error) {
     console.error(`Error fetching recommendations for employee ${employeeId}:`, error);
     return [];

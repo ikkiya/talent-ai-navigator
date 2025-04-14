@@ -1,45 +1,40 @@
 
-import { supabase } from '@/lib/supabase';
 import { User, UserRole, UserStatus } from '@/types';
 
-// Define interfaces for the RPC function return types
-interface UserRPCResponse {
+// Define interfaces for the API response types
+interface UserAPIResponse {
   id: string;
   email: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   role: string;
-  is_active: boolean;
-  last_sign_in_at: string | null;
+  isActive: boolean;
+  lastSignInAt: string | null;
 }
+
+const API_URL = 'http://localhost:8080/api';
 
 // User management functions
 export const getAll = async (): Promise<User[]> => {
   try {
-    // Call RPC function with simpler approach and type assertion
-    const { data, error } = await supabase.rpc('get_all_users');
-
-    if (error) {
-      console.error('Error fetching users:', error);
-      throw error;
+    const response = await fetch(`${API_URL}/users`);
+    
+    if (!response.ok) {
+      throw new Error(`Error fetching users: ${response.statusText}`);
     }
     
-    // If no data is returned, return an empty array
-    if (!data) return [];
-    
-    // Type assertion and mapping
-    const typedData = data as UserRPCResponse[];
+    const data = await response.json() as UserAPIResponse[];
     
     // Map the data to the expected User type
-    return typedData.map(user => ({
+    return data.map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',
-      firstName: user.first_name || '',
-      lastName: user.last_name || '',
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
       role: user.role as UserRole,
-      status: (user.is_active ? 'active' : 'inactive') as UserStatus,
-      lastLogin: user.last_sign_in_at || null
+      status: (user.isActive ? 'active' : 'inactive') as UserStatus,
+      lastLogin: user.lastSignInAt || null
     }));
   } catch (error) {
     console.error('Error in getAll users:', error);
@@ -49,15 +44,16 @@ export const getAll = async (): Promise<User[]> => {
 
 export const approveUser = async (userId: string, role: UserRole): Promise<boolean> => {
   try {
-    // Use RPC with simpler approach
-    const { error } = await supabase.rpc('approve_user', {
-      user_id: userId,
-      user_role: role
+    const response = await fetch(`${API_URL}/users/${userId}/approve`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ role })
     });
 
-    if (error) {
-      console.error('Error approving user:', error);
-      return false;
+    if (!response.ok) {
+      throw new Error(`Error approving user: ${response.statusText}`);
     }
 
     return true;
@@ -69,14 +65,15 @@ export const approveUser = async (userId: string, role: UserRole): Promise<boole
 
 export const assignMentorRole = async (userId: string): Promise<boolean> => {
   try {
-    // Update user role using RPC with simpler approach
-    const { error } = await supabase.rpc('assign_mentor_role', {
-      user_id: userId
+    const response = await fetch(`${API_URL}/users/${userId}/assign-mentor`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
 
-    if (error) {
-      console.error('Error assigning mentor role:', error);
-      return false;
+    if (!response.ok) {
+      throw new Error(`Error assigning mentor role: ${response.statusText}`);
     }
 
     return true;
@@ -88,30 +85,24 @@ export const assignMentorRole = async (userId: string): Promise<boolean> => {
 
 export const getPendingUsers = async (): Promise<User[]> => {
   try {
-    // Use RPC with simpler approach
-    const { data, error } = await supabase.rpc('get_pending_users');
-
-    if (error) {
-      console.error('Error fetching pending users:', error);
-      throw error;
+    const response = await fetch(`${API_URL}/users/pending`);
+    
+    if (!response.ok) {
+      throw new Error(`Error fetching pending users: ${response.statusText}`);
     }
     
-    // If no data is returned, return an empty array
-    if (!data) return [];
-    
-    // Type assertion and mapping
-    const typedData = data as UserRPCResponse[];
+    const data = await response.json() as UserAPIResponse[];
     
     // Map the data to the expected User type
-    return typedData.map(user => ({
+    return data.map(user => ({
       id: user.id,
       username: user.email?.split('@')[0] || '',
       email: user.email || '',
-      firstName: user.first_name || '',
-      lastName: user.last_name || '',
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
       role: user.role as UserRole,
       status: 'inactive' as UserStatus,
-      lastLogin: user.last_sign_in_at || null
+      lastLogin: user.lastSignInAt || null
     }));
   } catch (error) {
     console.error('Error in getPendingUsers:', error);

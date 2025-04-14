@@ -1,51 +1,34 @@
 
-import { supabase } from '@/lib/supabase';
 import { IlbamMatrix } from '@/types';
 
-// Define interface for the RPC function return types
-interface IlbamMatrixDBResponse {
+// Define interface for the API response types
+interface IlbamMatrixAPIResponse {
   id: string;
-  employee_id: string;
-  business_understanding: number;
+  employeeId: string;
+  businessUnderstanding: number;
   leadership: number;
-  innovation_capability: number;
+  innovationCapability: number;
   teamwork: number;
   adaptability: number;
   motivation: number;
-  last_updated: string;
-  updated_by: string;
+  lastUpdated: string;
+  updatedBy: string;
 }
+
+const API_URL = 'http://localhost:8080/api';
 
 // Get all ILBAM matrices
 export const getAll = async (): Promise<IlbamMatrix[]> => {
   try {
-    // Use RPC with proper typing
-    const { data, error } = await supabase.rpc('get_all_ilbam_matrices');
-
-    if (error) {
-      console.error('Error fetching ILBAM matrices:', error);
-      return [];
+    const response = await fetch(`${API_URL}/ilbam`);
+    
+    if (!response.ok) {
+      throw new Error(`Error fetching ILBAM matrices: ${response.statusText}`);
     }
-
-    // If no data is returned, return an empty array
-    if (!data) return [];
     
-    // Cast the data to the expected type and then map it
-    const typedData = data as IlbamMatrixDBResponse[];
+    const data = await response.json() as IlbamMatrixAPIResponse[];
     
-    // Convert from DB format to our application format
-    return typedData.map(item => ({
-      id: item.id,
-      employeeId: item.employee_id,
-      businessUnderstanding: item.business_understanding,
-      leadership: item.leadership,
-      innovationCapability: item.innovation_capability,
-      teamwork: item.teamwork,
-      adaptability: item.adaptability,
-      motivation: item.motivation,
-      lastUpdated: item.last_updated,
-      updatedBy: item.updated_by
-    }));
+    return data;
   } catch (error) {
     console.error('Error fetching ILBAM matrices:', error);
     return [];
@@ -55,34 +38,15 @@ export const getAll = async (): Promise<IlbamMatrix[]> => {
 // Get ILBAM matrix by employee ID
 export const getByEmployeeId = async (employeeId: string): Promise<IlbamMatrix | null> => {
   try {
-    // Use RPC with proper typing
-    const { data, error } = await supabase.rpc('get_ilbam_by_employee_id', {
-      employee_id_param: employeeId
-    });
-
-    if (error) {
-      console.error(`Error fetching ILBAM matrix for employee ${employeeId}:`, error);
-      return null;
+    const response = await fetch(`${API_URL}/ilbam/employee/${employeeId}`);
+    
+    if (!response.ok) {
+      throw new Error(`Error fetching ILBAM matrix: ${response.statusText}`);
     }
-
-    if (!data) return null;
     
-    // Cast the data to the expected type
-    const typedData = data as IlbamMatrixDBResponse;
+    const data = await response.json() as IlbamMatrixAPIResponse;
     
-    // Convert from DB format to our application format
-    return {
-      id: typedData.id,
-      employeeId: typedData.employee_id,
-      businessUnderstanding: typedData.business_understanding,
-      leadership: typedData.leadership,
-      innovationCapability: typedData.innovation_capability,
-      teamwork: typedData.teamwork,
-      adaptability: typedData.adaptability,
-      motivation: typedData.motivation,
-      lastUpdated: typedData.last_updated,
-      updatedBy: typedData.updated_by
-    };
+    return data;
   } catch (error) {
     console.error(`Error fetching ILBAM matrix for employee ${employeeId}:`, error);
     return null;
@@ -92,41 +56,21 @@ export const getByEmployeeId = async (employeeId: string): Promise<IlbamMatrix |
 // Upload ILBAM matrix data
 export const uploadIlbamMatrix = async (matrixData: Omit<IlbamMatrix, 'id'>): Promise<IlbamMatrix | null> => {
   try {
-    // Use RPC with proper typing
-    const { data, error } = await supabase.rpc('upsert_ilbam_matrix', {
-      employee_id_param: matrixData.employeeId,
-      business_understanding_param: matrixData.businessUnderstanding,
-      leadership_param: matrixData.leadership,
-      innovation_capability_param: matrixData.innovationCapability,
-      teamwork_param: matrixData.teamwork,
-      adaptability_param: matrixData.adaptability,
-      motivation_param: matrixData.motivation,
-      updated_by_param: matrixData.updatedBy
+    const response = await fetch(`${API_URL}/ilbam`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(matrixData)
     });
-
-    if (error) {
-      console.error('Error uploading ILBAM matrix:', error);
-      return null;
+    
+    if (!response.ok) {
+      throw new Error(`Error uploading ILBAM matrix: ${response.statusText}`);
     }
-
-    if (!data) return null;
     
-    // Cast the data to the expected type
-    const typedData = data as IlbamMatrixDBResponse;
+    const data = await response.json() as IlbamMatrixAPIResponse;
     
-    // Convert from DB format to our application format
-    return {
-      id: typedData.id,
-      employeeId: typedData.employee_id,
-      businessUnderstanding: typedData.business_understanding,
-      leadership: typedData.leadership,
-      innovationCapability: typedData.innovation_capability,
-      teamwork: typedData.teamwork,
-      adaptability: typedData.adaptability,
-      motivation: typedData.motivation,
-      lastUpdated: typedData.last_updated,
-      updatedBy: typedData.updated_by
-    };
+    return data;
   } catch (error) {
     console.error('Error uploading ILBAM matrix:', error);
     return null;
@@ -136,41 +80,21 @@ export const uploadIlbamMatrix = async (matrixData: Omit<IlbamMatrix, 'id'>): Pr
 // Update ILBAM matrix
 export const updateIlbamMatrix = async (matrix: IlbamMatrix): Promise<IlbamMatrix | null> => {
   try {
-    // Use RPC with proper typing
-    const { data, error } = await supabase.rpc('update_ilbam_matrix', {
-      matrix_id_param: matrix.id,
-      business_understanding_param: matrix.businessUnderstanding,
-      leadership_param: matrix.leadership,
-      innovation_capability_param: matrix.innovationCapability,
-      teamwork_param: matrix.teamwork,
-      adaptability_param: matrix.adaptability,
-      motivation_param: matrix.motivation,
-      updated_by_param: matrix.updatedBy
+    const response = await fetch(`${API_URL}/ilbam/${matrix.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(matrix)
     });
-
-    if (error) {
-      console.error('Error updating ILBAM matrix:', error);
-      return null;
+    
+    if (!response.ok) {
+      throw new Error(`Error updating ILBAM matrix: ${response.statusText}`);
     }
-
-    if (!data) return null;
     
-    // Cast the data to the expected type
-    const typedData = data as IlbamMatrixDBResponse;
+    const data = await response.json() as IlbamMatrixAPIResponse;
     
-    // Convert from DB format to our application format
-    return {
-      id: typedData.id,
-      employeeId: typedData.employee_id,
-      businessUnderstanding: typedData.business_understanding,
-      leadership: typedData.leadership,
-      innovationCapability: typedData.innovation_capability,
-      teamwork: typedData.teamwork,
-      adaptability: typedData.adaptability,
-      motivation: typedData.motivation,
-      lastUpdated: typedData.last_updated,
-      updatedBy: typedData.updated_by
-    };
+    return data;
   } catch (error) {
     console.error('Error updating ILBAM matrix:', error);
     return null;

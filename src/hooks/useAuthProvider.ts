@@ -1,44 +1,54 @@
 
 import { useSession } from './useSession';
-import { supabase } from '@/lib/supabase';
 import { UserRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+
+const API_URL = 'http://localhost:8080/api';
 
 export function useAuthProvider() {
   const { toast } = useToast();
   const auth = useSession();
+  const [isLoading, setIsLoading] = useState(false);
 
   const login = async (email: string, password: string) => {
     try {
-      auth.isLoading = true;
-      auth.error = null;
+      setIsLoading(true);
       
-      console.log('Attempting login with:', { email });
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password })
       });
-
-      if (error) {
-        throw error;
+      
+      if (!response.ok) {
+        throw new Error(`Login failed: ${response.statusText}`);
       }
-
-      // Auth state will be updated by the onAuthStateChange listener
-      localStorage.setItem('token', data.session?.access_token || '');
+      
+      const data = await response.json();
+      
+      localStorage.setItem('token', data.token);
       return { success: true };
     } catch (error: any) {
       console.error('Login error:', error);
-      
       return { success: false, error };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      const response = await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
       localStorage.removeItem('token');
-      // Auth state will be updated by the onAuthStateChange listener
     } catch (error: any) {
       console.error('Logout error:', error);
       toast({

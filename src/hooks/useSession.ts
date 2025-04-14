@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import { AuthState, User, UserStatus } from '@/types';
-import { createUserObject, Profile } from '@/utils/auth-utils';
+
+const API_URL = 'http://localhost:8080/api';
 
 export function useSession() {
   const [auth, setAuth] = useState<AuthState>({
@@ -17,47 +17,35 @@ export function useSession() {
     // Check for an active session on page load
     const checkSession = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        const token = localStorage.getItem('token');
         
-        if (error) {
-          throw error;
-        }
-
-        if (data?.session) {
-          // Get user profile data from your profiles table
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.session.user.id)
-            .single();
-
-          if (profileError) {
-            console.warn('User profile not found:', profileError);
-          }
-
-          const email = data.session.user.email || '';
-          const profile = profileData as Profile | null;
-          
-          const user = createUserObject(
-            data.session.user.id,
-            email,
-            profile,
-            data.session.user.last_sign_in_at
-          );
-
-          setAuth({
-            user,
-            token: data.session.access_token,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
-        } else {
-          // No active session
+        if (!token) {
           setAuth(prev => ({ ...prev, isLoading: false }));
+          return;
         }
+        
+        const response = await fetch(`${API_URL}/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Session invalid');
+        }
+        
+        const userData = await response.json();
+        
+        setAuth({
+          user: userData,
+          token,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
       } catch (error: any) {
         console.error('Auth error:', error);
+        localStorage.removeItem('token');
         setAuth({
           user: null,
           token: null,
@@ -69,62 +57,16 @@ export function useSession() {
     };
 
     checkSession();
-
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        if (session) {
-          // User signed in or token refreshed
-          try {
-            // Get user profile data
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-
-            if (profileError) {
-              console.warn('User profile not found:', profileError);
-            }
-
-            const email = session.user.email || '';
-            const profile = profileData as Profile | null;
-            
-            const user = createUserObject(
-              session.user.id,
-              email,
-              profile,
-              session.user.last_sign_in_at
-            );
-
-            setAuth({
-              user,
-              token: session.access_token,
-              isAuthenticated: true,
-              isLoading: false,
-              error: null,
-            });
-          } catch (error) {
-            console.error('Profile fetch error:', error);
-            setAuth(prev => ({ ...prev, isLoading: false }));
-          }
-        } else {
-          // User signed out
-          setAuth({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-          });
-        }
+    
+    // Setup interval to refresh session
+    const intervalId = setInterval(() => {
+      if (localStorage.getItem('token')) {
+        checkSession();
       }
-    );
-
+    }, 5 * 60 * 1000); // Check every 5 minutes
+    
     return () => {
-      subscription.unsubscribe();
+      clearInterval(intervalId);
     };
   }, []);
 

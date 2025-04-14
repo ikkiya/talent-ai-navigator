@@ -12,6 +12,7 @@ function mapDbEmployeeToEmployee(dbEmployee: any): Employee {
     email: dbEmployee.email,
     department: dbEmployee.department,
     position: dbEmployee.position,
+    location: dbEmployee.location || '', // Add location property with default empty string
     managerId: dbEmployee.manager_id || undefined,
     mentorId: dbEmployee.mentor_id || undefined,
     hireDate: dbEmployee.hire_date,

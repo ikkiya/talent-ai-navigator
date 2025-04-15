@@ -3,6 +3,7 @@ import { useSession } from './useSession';
 import { UserRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { post } from '@/lib/api-client';
 
 const API_URL = 'http://localhost:8080/api';
 
@@ -24,12 +25,17 @@ export function useAuthProvider() {
       });
       
       if (!response.ok) {
-        throw new Error(`Login failed: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Login failed: ${response.statusText}`);
       }
       
       const data = await response.json();
       
       localStorage.setItem('token', data.token);
+      if (data.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+      
       return { success: true };
     } catch (error: any) {
       console.error('Login error:', error);
@@ -41,14 +47,20 @@ export function useAuthProvider() {
 
   const logout = async () => {
     try {
-      const response = await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      // Get the refresh token if present to invalidate it
+      const refreshToken = localStorage.getItem('refreshToken');
       
+      if (refreshToken) {
+        try {
+          await post('auth/logout', { refreshToken });
+        } catch (error) {
+          console.error('Error during server logout:', error);
+        }
+      }
+      
+      // Always clear local storage regardless of server response
       localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
     } catch (error: any) {
       console.error('Logout error:', error);
       toast({
@@ -64,5 +76,5 @@ export function useAuthProvider() {
     return requiredRoles.includes(auth.user.role);
   };
 
-  return { auth, login, logout, isAuthorized };
+  return { auth, login, logout, isAuthorized, isLoading };
 }

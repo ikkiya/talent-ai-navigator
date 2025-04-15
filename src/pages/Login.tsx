@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,14 +8,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Sparkles, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const { auth, login } = useAuth();
+  const { auth, login, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -27,7 +25,7 @@ const Login = () => {
   }, [auth.isAuthenticated, navigate]);
 
   const handleDemoLogin = async (demoEmail: string) => {
-    if (isSubmitting) return;
+    if (isSubmitting || isLoading) return;
     
     setEmail(demoEmail);
     setPassword('password123');
@@ -38,20 +36,17 @@ const Login = () => {
       
       console.log(`Logging in with demo account: ${demoEmail}`);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: demoEmail,
-        password: 'password123',
-      });
+      const result = await login(demoEmail, 'password123');
       
-      if (error) {
-        console.error('Demo login error:', error);
-        setLoginError(`Login failed: ${error.message}. These demo accounts need to be created in Supabase first.`);
+      if (!result.success) {
+        console.error('Demo login error:', result.error);
+        setLoginError(`Login failed: ${result.error?.message || 'Authentication failed'}`);
         toast({
           title: "Login Failed",
-          description: error.message,
+          description: result.error?.message || "Authentication failed",
           variant: "destructive",
         });
-      } else if (data?.user) {
+      } else {
         toast({
           title: "Success!",
           description: "Logged in successfully",
@@ -74,7 +69,7 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isSubmitting) return;
+    if (isSubmitting || isLoading) return;
     
     if (!email || !password) {
       toast({
@@ -91,20 +86,17 @@ const Login = () => {
     try {
       console.log(`Attempting login with email: ${email}`);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const result = await login(email, password);
       
-      if (error) {
-        console.error('Login error:', error);
-        setLoginError(error.message);
+      if (!result.success) {
+        console.error('Login error:', result.error);
+        setLoginError(result.error?.message || 'Authentication failed');
         toast({
           title: "Login Failed",
-          description: error.message,
+          description: result.error?.message || "Authentication failed",
           variant: "destructive",
         });
-      } else if (data?.user) {
+      } else {
         toast({
           title: "Success!",
           description: "Logged in successfully",
@@ -124,7 +116,7 @@ const Login = () => {
     }
   };
 
-  if (auth.isLoading) {
+  if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 

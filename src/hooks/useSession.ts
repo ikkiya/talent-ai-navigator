@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { AuthState, User, UserStatus } from '@/types';
+import { get } from '@/lib/api-client';
 
 const API_URL = 'http://localhost:8080/api';
 
@@ -18,34 +19,76 @@ export function useSession() {
     const checkSession = async () => {
       try {
         const token = localStorage.getItem('token');
+        const refreshToken = localStorage.getItem('refreshToken');
         
         if (!token) {
           setAuth(prev => ({ ...prev, isLoading: false }));
           return;
         }
         
-        const response = await fetch(`${API_URL}/auth/me`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
+        try {
+          // Attempt to get current user data
+          const userData = await get<User>('auth/me');
+          
+          setAuth({
+            user: userData,
+            token,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+        } catch (error) {
+          // Try to refresh token if current token is invalid
+          if (refreshToken) {
+            try {
+              const response = await fetch(`${API_URL}/auth/refresh-token`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ refreshToken })
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('token', data.token);
+                if (data.refreshToken) {
+                  localStorage.setItem('refreshToken', data.refreshToken);
+                }
+                
+                // Retry getting user data with new token
+                const userData = await get<User>('auth/me');
+                
+                setAuth({
+                  user: userData,
+                  token: data.token,
+                  isAuthenticated: true,
+                  isLoading: false,
+                  error: null,
+                });
+                return;
+              }
+            } catch (refreshError) {
+              console.error('Token refresh error:', refreshError);
+            }
           }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Session invalid');
+          
+          // If refresh failed or no refresh token, clear auth
+          console.error('Session error:', error);
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          setAuth({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: 'Session expired. Please log in again.',
+          });
         }
-        
-        const userData = await response.json();
-        
-        setAuth({
-          user: userData,
-          token,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
       } catch (error: any) {
         console.error('Auth error:', error);
         localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
         setAuth({
           user: null,
           token: null,
@@ -63,7 +106,7 @@ export function useSession() {
       if (localStorage.getItem('token')) {
         checkSession();
       }
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    }, 10 * 60 * 1000); // Check every 10 minutes
     
     return () => {
       clearInterval(intervalId);

@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: any }>;
   logout: () => void;
   isAuthorized: (requiredRoles: UserRole[]) => boolean;
+  isLoading: boolean; // Add this property to fix the build error
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

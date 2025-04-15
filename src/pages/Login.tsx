@@ -1,13 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Sparkles, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import LoginForm from '@/components/auth/LoginForm';
+import DemoAccounts from '@/components/auth/DemoAccounts';
+import AppLogo from '@/components/auth/AppLogo';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -124,13 +123,7 @@ const Login = () => {
     <div className="min-h-screen flex flex-col bg-muted/30">
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-md animate-fade-in">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Sparkles className="h-8 w-8 text-brand-blue" />
-              <h1 className="text-3xl font-bold">TalentNavigator</h1>
-            </div>
-            <p className="text-muted-foreground">AI-Powered Employee & Team Management</p>
-          </div>
+          <AppLogo />
           
           <Card>
             <CardHeader>
@@ -139,89 +132,32 @@ const Login = () => {
                 Enter your credentials to access your account
               </CardDescription>
             </CardHeader>
-            <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-4">              
-                {(auth.error || loginError) && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{auth.error || loginError}</AlertDescription>
-                  </Alert>
-                )}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <a href="#" className="text-xs text-primary hover:underline">
-                      Forgot password?
-                    </a>
-                  </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="text-sm">
-                  <p className="font-medium">Demo Accounts:</p>
-                  <div className="grid gap-2 mt-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="text-xs justify-start h-8"
-                      onClick={() => handleDemoLogin('admin@company.com')}
-                      disabled={isSubmitting}
-                    >
-                      admin@company.com (Admin)
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="text-xs justify-start h-8"
-                      onClick={() => handleDemoLogin('manager@company.com')}
-                      disabled={isSubmitting}
-                    >
-                      manager@company.com (Manager)
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="text-xs justify-start h-8"
-                      onClick={() => handleDemoLogin('mentor@company.com')}
-                      disabled={isSubmitting}
-                    >
-                      mentor@company.com (Mentor)
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
+            <CardContent className="space-y-4">              
+              <LoginForm 
+                email={email}
+                password={password}
+                setEmail={setEmail}
+                setPassword={setPassword}
+                loginError={loginError}
+                isSubmitting={isSubmitting}
+              />
               
-              <CardFooter>
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Signing in..." : "Sign In"}
-                </Button>
-              </CardFooter>
-            </form>
+              <DemoAccounts 
+                handleDemoLogin={handleDemoLogin}
+                isSubmitting={isSubmitting}
+              />
+            </CardContent>
+            
+            <CardFooter>
+              <button 
+                type="button" 
+                className="w-full" 
+                onClick={handleSubmit}
+                style={{ display: 'none' }}
+              >
+                Hidden Button
+              </button>
+            </CardFooter>
           </Card>
         </div>
       </div>

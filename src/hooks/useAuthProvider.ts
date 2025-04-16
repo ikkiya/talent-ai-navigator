@@ -2,7 +2,7 @@
 import { useSession } from './useSession';
 import { UserRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { post } from '@/lib/api-client';
 
 const API_URL = 'http://localhost:8080/api';
@@ -11,10 +11,16 @@ export function useAuthProvider() {
   const { toast } = useToast();
   const auth = useSession();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Sync authentication state with session
+  useEffect(() => {
+    console.log("Auth provider initialized, auth state:", auth);
+  }, [auth]);
 
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
+      console.log(`Attempting to login with email: ${email}`);
       
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -27,9 +33,12 @@ export function useAuthProvider() {
         mode: 'cors',
       });
       
+      console.log("Login response status:", response.status);
+      
       let data;
       try {
         data = await response.json();
+        console.log("Login response data:", data);
       } catch (e) {
         console.error('Error parsing login response:', e);
         toast({
@@ -42,6 +51,7 @@ export function useAuthProvider() {
       
       if (!response.ok) {
         const errorMessage = data.message || `Login failed: ${response.statusText}`;
+        console.error("Login failed:", errorMessage);
         toast({
           title: "Login Failed",
           description: errorMessage,
@@ -50,9 +60,22 @@ export function useAuthProvider() {
         return { success: false, error: new Error(errorMessage) };
       }
       
+      // Store token in localStorage
+      console.log("Storing auth tokens");
       localStorage.setItem('token', data.token);
       if (data.refreshToken) {
         localStorage.setItem('refreshToken', data.refreshToken);
+      }
+      
+      // Store user data if available
+      if (data.user) {
+        console.log("User data received:", data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+      
+      // Force update session
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('storage'));
       }
       
       toast({
@@ -60,7 +83,7 @@ export function useAuthProvider() {
         description: "You have been logged in successfully",
       });
       
-      return { success: true };
+      return { success: true, user: data.user };
     } catch (error: any) {
       console.error('Login error:', error);
       toast({
@@ -76,6 +99,7 @@ export function useAuthProvider() {
 
   const logout = async () => {
     try {
+      console.log("Logging out...");
       const refreshToken = localStorage.getItem('refreshToken');
       
       if (refreshToken) {
@@ -88,6 +112,12 @@ export function useAuthProvider() {
       
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      
+      // Force update session
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('storage'));
+      }
       
       toast({
         title: "Logout Successful",

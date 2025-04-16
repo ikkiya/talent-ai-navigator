@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,10 +17,16 @@ const Login = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (auth.isAuthenticated) {
+    console.log("Login page - auth state changed:", {
+      isAuthenticated: auth.isAuthenticated,
+      isLoading: auth.isLoading
+    });
+    
+    if (auth.isAuthenticated && !auth.isLoading) {
+      console.log("User is authenticated, redirecting to dashboard");
       navigate('/dashboard');
     }
-  }, [auth.isAuthenticated, navigate]);
+  }, [auth.isAuthenticated, auth.isLoading, navigate]);
 
   const handleDemoLogin = async (demoEmail: string) => {
     if (isSubmitting || isLoading) return;
@@ -46,11 +51,14 @@ const Login = () => {
           variant: "destructive",
         });
       } else {
+        console.log("Demo login successful, user:", result.user);
         toast({
           title: "Success!",
           description: "Logged in successfully",
         });
-        // The auth context will handle the redirect
+        
+        // Explicitly navigate to dashboard after login
+        setTimeout(() => navigate('/dashboard'), 100);
       }
     } catch (error: any) {
       console.error('Demo login catch error:', error);
@@ -96,11 +104,14 @@ const Login = () => {
           variant: "destructive",
         });
       } else {
+        console.log("Login successful, user:", result.user);
         toast({
           title: "Success!",
           description: "Logged in successfully",
         });
-        // The auth context will handle the redirect
+        
+        // Explicitly navigate to dashboard after login
+        setTimeout(() => navigate('/dashboard'), 100);
       }
     } catch (error: any) {
       console.error('Login catch error:', error);
@@ -115,8 +126,12 @@ const Login = () => {
     }
   };
 
-  if (isLoading) {
+  if (auth.isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (auth.isAuthenticated) {
+    return <div className="min-h-screen flex items-center justify-center">Redirecting to dashboard...</div>;
   }
 
   return (

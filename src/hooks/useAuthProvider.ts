@@ -15,25 +15,20 @@ export function useAuthProvider() {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      console.log('Attempting login with:', { email });
       
-      // Using direct fetch to have complete control over the request
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-CSRF-TOKEN': 'disabled', // Explicitly disable CSRF
+          'X-CSRF-TOKEN': 'disabled', 
         },
         body: JSON.stringify({ email, password }),
         credentials: 'include',
         mode: 'cors',
       });
       
-      console.log('Login response status:', response.status);
-      
       const responseText = await response.text();
-      console.log('Login response text:', responseText);
       
       let data;
       try {
@@ -50,7 +45,6 @@ export function useAuthProvider() {
       
       if (!response.ok) {
         const errorMessage = data.message || `Login failed: ${response.statusText}`;
-        console.error('Login failed with error:', errorMessage);
         toast({
           title: "Login Failed",
           description: errorMessage,
@@ -59,7 +53,6 @@ export function useAuthProvider() {
         return { success: false, error: new Error(errorMessage) };
       }
       
-      console.log('Login successful, token received');
       localStorage.setItem('token', data.token);
       if (data.refreshToken) {
         localStorage.setItem('refreshToken', data.refreshToken);
@@ -68,7 +61,6 @@ export function useAuthProvider() {
       toast({
         title: "Login Successful",
         description: "You have been logged in successfully",
-        variant: "default",
       });
       
       return { success: true };
@@ -103,7 +95,6 @@ export function useAuthProvider() {
       toast({
         title: "Logout Successful",
         description: "You have been logged out successfully",
-        variant: "default",
       });
     } catch (error: any) {
       console.error('Logout error:', error);

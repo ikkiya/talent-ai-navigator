@@ -140,6 +140,7 @@ const Login = () => {
                 setPassword={setPassword}
                 loginError={loginError}
                 isSubmitting={isSubmitting}
+                onSubmit={handleSubmit}
               />
               
               <DemoAccounts 
@@ -147,17 +148,6 @@ const Login = () => {
                 isSubmitting={isSubmitting}
               />
             </CardContent>
-            
-            <CardFooter>
-              <button 
-                type="button" 
-                className="w-full" 
-                onClick={handleSubmit}
-                style={{ display: 'none' }}
-              >
-                Hidden Button
-              </button>
-            </CardFooter>
           </Card>
         </div>
       </div>

@@ -15,22 +15,37 @@ export function useAuthProvider() {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
+      console.log('Attempting login with:', { email });
       
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
+        credentials: 'include' // Include cookies if any
       });
       
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Login failed: ${response.statusText}`);
+      console.log('Login response status:', response.status);
+      
+      // Get response body as text first for debugging
+      const responseText = await response.text();
+      console.log('Login response text:', responseText);
+      
+      // Parse JSON if it's valid
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Error parsing login response:', e);
+        throw new Error(`Login failed: Invalid response format`);
       }
       
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || `Login failed: ${response.statusText}`);
+      }
       
+      console.log('Login successful, token received');
       localStorage.setItem('token', data.token);
       if (data.refreshToken) {
         localStorage.setItem('refreshToken', data.refreshToken);

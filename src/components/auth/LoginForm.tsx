@@ -14,6 +14,7 @@ interface LoginFormProps {
   password: string;
   loginError: string | null;
   isSubmitting: boolean;
+  onSubmit: (e: React.FormEvent) => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ 
@@ -22,12 +23,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
   email, 
   password, 
   loginError, 
-  isSubmitting 
+  isSubmitting,
+  onSubmit
 }) => {
   const { auth } = useAuth();
 
   return (
-    <div className="space-y-4">              
+    <form onSubmit={onSubmit} className="space-y-4">              
       {(auth.error || loginError) && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -64,7 +66,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
           required
         />
       </div>
-    </div>
+
+      <Button 
+        type="submit" 
+        className="w-full"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Signing in..." : "Sign In"}
+      </Button>
+    </form>
   );
 };
 

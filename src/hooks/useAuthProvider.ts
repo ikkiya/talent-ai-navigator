@@ -22,7 +22,7 @@ export function useAuthProvider() {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-CSRF-TOKEN': 'disabled', // Add token to explicitly indicate CSRF is disabled
+          'X-CSRF-TOKEN': 'disabled', // Explicitly indicate CSRF is disabled
         },
         body: JSON.stringify({ email, password }),
         mode: 'cors', // Explicitly set CORS mode

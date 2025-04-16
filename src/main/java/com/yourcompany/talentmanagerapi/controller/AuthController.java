@@ -32,14 +32,24 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
         try {
             System.out.println("Login request received for email: " + loginRequest.getEmail());
+            
+            // Validate request
+            if (loginRequest.getEmail() == null || loginRequest.getPassword() == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Email and password are required"));
+            }
+            
             AuthResponseDTO response = authService.login(loginRequest);
             if (response != null) {
                 Map<String, Object> result = new HashMap<>();
                 result.put("token", response.getToken());
                 result.put("user", response.getUser());
                 result.put("refreshToken", jwtService.generateRefreshToken(loginRequest.getEmail()));
+                
+                System.out.println("Login successful for: " + loginRequest.getEmail());
                 return ResponseEntity.ok(result);
             } else {
+                System.out.println("Authentication failed for: " + loginRequest.getEmail());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Authentication failed"));
             }
@@ -80,6 +90,11 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
         try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid authorization header"));
+            }
+            
             String token = authHeader.substring(7); // Remove "Bearer " prefix
             String email = jwtService.extractUsername(token);
             

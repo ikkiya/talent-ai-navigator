@@ -1,4 +1,3 @@
-
 package com.yourcompany.talentmanagerapi.controller;
 
 import com.yourcompany.talentmanagerapi.dto.AuthResponseDTO;
@@ -19,7 +18,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class AuthController {
     
     @Autowired

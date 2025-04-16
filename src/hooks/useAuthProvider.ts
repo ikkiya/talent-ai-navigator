@@ -1,4 +1,3 @@
-
 import { useSession } from './useSession';
 import { UserRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -22,20 +21,16 @@ export function useAuthProvider() {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-CSRF-TOKEN': 'disabled', // Explicitly indicate CSRF is disabled
         },
         body: JSON.stringify({ email, password }),
-        mode: 'cors', // Explicitly set CORS mode
-        credentials: 'omit' // Don't include credentials to avoid CSRF issues
+        credentials: 'include',
       });
       
       console.log('Login response status:', response.status);
       
-      // Get response body as text first for debugging
       const responseText = await response.text();
       console.log('Login response text:', responseText);
       
-      // Parse JSON if it's valid
       let data;
       try {
         data = JSON.parse(responseText);
@@ -87,7 +82,6 @@ export function useAuthProvider() {
 
   const logout = async () => {
     try {
-      // Get the refresh token if present to invalidate it
       const refreshToken = localStorage.getItem('refreshToken');
       
       if (refreshToken) {
@@ -98,7 +92,6 @@ export function useAuthProvider() {
         }
       }
       
-      // Always clear local storage regardless of server response
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
       

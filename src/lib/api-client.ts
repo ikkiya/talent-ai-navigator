@@ -8,7 +8,6 @@ type RequestOptions = {
   headers?: Record<string, string>;
   params?: Record<string, string>;
   credentials?: RequestCredentials;
-  mode?: RequestMode;
 };
 
 export async function get<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
@@ -32,14 +31,10 @@ export async function get<T>(endpoint: string, options: RequestOptions = {}): Pr
     headers['Authorization'] = `Bearer ${token}`;
   }
   
-  // Add CSRF token workaround
-  headers['X-CSRF-TOKEN'] = 'disabled';
-  
   const response = await fetch(url.toString(), {
     method: 'GET',
     headers,
-    credentials: options.credentials || 'omit',
-    mode: options.mode || 'cors',
+    credentials: options.credentials || 'include',
   });
   
   if (!response.ok) {
@@ -75,15 +70,11 @@ export async function post<T>(endpoint: string, data: any, options: RequestOptio
     headers['Authorization'] = `Bearer ${token}`;
   }
   
-  // Add CSRF token workaround
-  headers['X-CSRF-TOKEN'] = 'disabled';
-  
   const response = await fetch(url, {
     method: 'POST',
     headers,
     body: JSON.stringify(data),
-    credentials: options.credentials || 'omit',
-    mode: options.mode || 'cors',
+    credentials: options.credentials || 'include',
   });
   
   if (!response.ok) {
@@ -118,9 +109,6 @@ export async function put<T>(endpoint: string, data: any, options: RequestOption
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
-  // Add CSRF token workaround
-  headers['X-CSRF-TOKEN'] = 'disabled';
   
   const response = await fetch(url, {
     method: 'PUT',
@@ -161,9 +149,6 @@ export async function del<T>(endpoint: string, options: RequestOptions = {}): Pr
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
-  // Add CSRF token workaround
-  headers['X-CSRF-TOKEN'] = 'disabled';
   
   const response = await fetch(url, {
     method: 'DELETE',

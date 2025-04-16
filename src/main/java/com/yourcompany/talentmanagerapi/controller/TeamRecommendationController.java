@@ -55,7 +55,7 @@ public class TeamRecommendationController {
                 List<TeamRecommendationDTO> recommendationDTOs = recommendations.stream()
                     .map(TeamRecommendationDTO::fromEntity)
                     .collect(Collectors.toList());
-                return ResponseEntity.ok(recommendationDTOs);
+                return ResponseEntity.ok(recommendationDTOs.get(0));
             }
         }
         return ResponseEntity.notFound().build();

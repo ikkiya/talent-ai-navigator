@@ -29,7 +29,7 @@ public class TeamRecommendationService {
     }
     
     public Optional<TeamRecommendation> getTeamRecommendationByProjectId(String projectId) {
-        return teamRecommendationRepository.findByProjectId(projectId);
+        return teamRecommendationRepository.findByProject_Id(projectId);
     }
     
     public List<TeamRecommendation> getTeamRecommendationsByConfidenceScore(int confidenceScoreThreshold) {

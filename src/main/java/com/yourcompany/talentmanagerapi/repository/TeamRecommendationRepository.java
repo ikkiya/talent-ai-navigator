@@ -12,6 +12,6 @@ import java.util.Optional;
 @Repository
 public interface TeamRecommendationRepository extends JpaRepository<TeamRecommendation, String> {
     List<TeamRecommendation> findByProject(Project project);
-    Optional<TeamRecommendation> findByProjectId(String projectId);
+    Optional<TeamRecommendation> findByProject_Id(String projectId);
     List<TeamRecommendation> findByConfidenceScoreGreaterThan(int confidenceScoreThreshold);
 }

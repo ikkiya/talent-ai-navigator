@@ -8,6 +8,7 @@ const API_URL = 'http://localhost:8080/api';
 type RequestOptions = {
   headers?: Record<string, string>;
   params?: Record<string, string>;
+  credentials?: RequestCredentials;
 };
 
 export async function get<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
@@ -33,10 +34,18 @@ export async function get<T>(endpoint: string, options: RequestOptions = {}): Pr
   const response = await fetch(url.toString(), {
     method: 'GET',
     headers,
+    credentials: options.credentials || 'same-origin',
   });
   
   if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
+    const errorText = await response.text();
+    let errorData;
+    try {
+      errorData = JSON.parse(errorText);
+    } catch (e) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+    throw new Error(errorData.message || `API error: ${response.status} ${response.statusText}`);
   }
   
   return await response.json();
@@ -60,10 +69,22 @@ export async function post<T>(endpoint: string, data: any, options: RequestOptio
     method: 'POST',
     headers,
     body: JSON.stringify(data),
+    credentials: options.credentials || 'same-origin',
   });
   
   if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
+    const errorText = await response.text();
+    let errorData;
+    try {
+      errorData = JSON.parse(errorText);
+    } catch (e) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+    throw new Error(errorData.message || `API error: ${response.status} ${response.statusText}`);
+  }
+  
+  if (response.headers.get('content-length') === '0') {
+    return {} as T;
   }
   
   return await response.json();
@@ -87,10 +108,22 @@ export async function put<T>(endpoint: string, data: any, options: RequestOption
     method: 'PUT',
     headers,
     body: JSON.stringify(data),
+    credentials: options.credentials || 'same-origin',
   });
   
   if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
+    const errorText = await response.text();
+    let errorData;
+    try {
+      errorData = JSON.parse(errorText);
+    } catch (e) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+    throw new Error(errorData.message || `API error: ${response.status} ${response.statusText}`);
+  }
+  
+  if (response.headers.get('content-length') === '0') {
+    return {} as T;
   }
   
   return await response.json();
@@ -112,10 +145,22 @@ export async function del<T>(endpoint: string, options: RequestOptions = {}): Pr
   const response = await fetch(url, {
     method: 'DELETE',
     headers,
+    credentials: options.credentials || 'same-origin',
   });
   
   if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
+    const errorText = await response.text();
+    let errorData;
+    try {
+      errorData = JSON.parse(errorText);
+    } catch (e) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+    throw new Error(errorData.message || `API error: ${response.status} ${response.statusText}`);
+  }
+  
+  if (response.headers.get('content-length') === '0') {
+    return {} as T;
   }
   
   return await response.json();

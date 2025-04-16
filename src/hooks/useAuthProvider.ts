@@ -38,11 +38,22 @@ export function useAuthProvider() {
         data = JSON.parse(responseText);
       } catch (e) {
         console.error('Error parsing login response:', e);
-        throw new Error(`Login failed: Invalid response format`);
+        toast({
+          title: "Login Error",
+          description: "Invalid response format from server",
+          variant: "destructive",
+        });
+        return { success: false, error: new Error("Invalid response format") };
       }
       
       if (!response.ok) {
-        throw new Error(data.message || `Login failed: ${response.statusText}`);
+        const errorMessage = data.message || `Login failed: ${response.statusText}`;
+        toast({
+          title: "Login Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return { success: false, error: new Error(errorMessage) };
       }
       
       console.log('Login successful, token received');
@@ -51,9 +62,20 @@ export function useAuthProvider() {
         localStorage.setItem('refreshToken', data.refreshToken);
       }
       
+      toast({
+        title: "Login Successful",
+        description: "You have been logged in successfully",
+        variant: "default",
+      });
+      
       return { success: true };
     } catch (error: any) {
       console.error('Login error:', error);
+      toast({
+        title: "Login Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
       return { success: false, error };
     } finally {
       setIsLoading(false);
@@ -76,6 +98,12 @@ export function useAuthProvider() {
       // Always clear local storage regardless of server response
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
+      
+      toast({
+        title: "Logout Successful",
+        description: "You have been logged out successfully",
+        variant: "default",
+      });
     } catch (error: any) {
       console.error('Logout error:', error);
       toast({

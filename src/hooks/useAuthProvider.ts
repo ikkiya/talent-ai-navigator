@@ -83,7 +83,7 @@ export function useAuthProvider() {
         description: "You have been logged in successfully",
       });
       
-      return { success: true, user: data.user };
+      return { success: true, user: data.user, error: null };
     } catch (error: any) {
       console.error('Login error:', error);
       toast({
@@ -91,7 +91,7 @@ export function useAuthProvider() {
         description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
-      return { success: false, error };
+      return { success: false, error, user: null };
     } finally {
       setIsLoading(false);
     }

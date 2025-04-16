@@ -5,10 +5,10 @@ import { useAuthProvider } from '@/hooks/useAuthProvider';
 
 interface AuthContextType {
   auth: AuthState;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: any }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: any; user?: any }>;
   logout: () => void;
   isAuthorized: (requiredRoles: UserRole[]) => boolean;
-  isLoading: boolean; // Add this property to fix the build error
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

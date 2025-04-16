@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -57,8 +58,9 @@ const Login = () => {
           description: "Logged in successfully",
         });
         
-        // Explicitly navigate to dashboard after login
-        setTimeout(() => navigate('/dashboard'), 100);
+        // Force navigation to dashboard after successful login
+        console.log("Forcing navigation to dashboard");
+        navigate('/dashboard', { replace: true });
       }
     } catch (error: any) {
       console.error('Demo login catch error:', error);
@@ -110,8 +112,9 @@ const Login = () => {
           description: "Logged in successfully",
         });
         
-        // Explicitly navigate to dashboard after login
-        setTimeout(() => navigate('/dashboard'), 100);
+        // Force navigation to dashboard after successful login
+        console.log("Forcing navigation to dashboard");
+        navigate('/dashboard', { replace: true });
       }
     } catch (error: any) {
       console.error('Login catch error:', error);

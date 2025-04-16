@@ -1,3 +1,4 @@
+
 import { useSession } from './useSession';
 import { UserRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -16,14 +17,17 @@ export function useAuthProvider() {
       setIsLoading(true);
       console.log('Attempting login with:', { email });
       
+      // Using direct fetch to have complete control over the request
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'X-CSRF-TOKEN': 'disabled', // Explicitly disable CSRF
         },
         body: JSON.stringify({ email, password }),
         credentials: 'include',
+        mode: 'cors',
       });
       
       console.log('Login response status:', response.status);
@@ -46,6 +50,7 @@ export function useAuthProvider() {
       
       if (!response.ok) {
         const errorMessage = data.message || `Login failed: ${response.statusText}`;
+        console.error('Login failed with error:', errorMessage);
         toast({
           title: "Login Failed",
           description: errorMessage,

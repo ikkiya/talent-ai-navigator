@@ -1,3 +1,4 @@
+
 package com.yourcompany.talentmanagerapi.controller;
 
 import com.yourcompany.talentmanagerapi.dto.AuthResponseDTO;
@@ -18,6 +19,10 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"}, 
+             allowedHeaders = "*", 
+             methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS},
+             allowCredentials = "true")
 public class AuthController {
     
     @Autowired
@@ -45,6 +50,7 @@ public class AuthController {
                 result.put("refreshToken", jwtService.generateRefreshToken(loginRequest.getEmail()));
                 
                 System.out.println("Login successful for: " + loginRequest.getEmail());
+                System.out.println("Generated token: " + response.getToken().substring(0, 20) + "...");
                 return ResponseEntity.ok(result);
             } else {
                 System.out.println("Authentication failed for: " + loginRequest.getEmail());

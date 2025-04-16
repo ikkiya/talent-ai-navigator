@@ -1,3 +1,4 @@
+
 /**
  * API client for making requests to the Java backend
  */
@@ -8,6 +9,7 @@ type RequestOptions = {
   headers?: Record<string, string>;
   params?: Record<string, string>;
   credentials?: RequestCredentials;
+  mode?: RequestMode; // Add the missing mode property
 };
 
 export async function get<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
@@ -23,6 +25,7 @@ export async function get<T>(endpoint: string, options: RequestOptions = {}): Pr
   // Add authorization header
   const headers: HeadersInit = {
     'Accept': 'application/json',
+    'X-CSRF-TOKEN': 'disabled', // Add explicit CSRF token disable header
     ...options.headers,
   };
   
@@ -35,6 +38,7 @@ export async function get<T>(endpoint: string, options: RequestOptions = {}): Pr
     method: 'GET',
     headers,
     credentials: options.credentials || 'include',
+    mode: options.mode || 'cors',
   });
   
   if (!response.ok) {
@@ -62,6 +66,7 @@ export async function post<T>(endpoint: string, data: any, options: RequestOptio
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'X-CSRF-TOKEN': 'disabled', // Add explicit CSRF token disable header
     ...options.headers,
   };
   
@@ -70,15 +75,23 @@ export async function post<T>(endpoint: string, data: any, options: RequestOptio
     headers['Authorization'] = `Bearer ${token}`;
   }
   
+  console.log('Sending POST request to:', url);
+  console.log('Headers:', headers);
+  console.log('Request body:', data);
+  
   const response = await fetch(url, {
     method: 'POST',
     headers,
     body: JSON.stringify(data),
     credentials: options.credentials || 'include',
+    mode: options.mode || 'cors',
   });
+  
+  console.log('Response status:', response.status);
   
   if (!response.ok) {
     const errorText = await response.text();
+    console.error('Error response body:', errorText);
     let errorData;
     try {
       errorData = JSON.parse(errorText);
@@ -102,6 +115,7 @@ export async function put<T>(endpoint: string, data: any, options: RequestOption
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'X-CSRF-TOKEN': 'disabled', // Add explicit CSRF token disable header
     ...options.headers,
   };
   
@@ -114,7 +128,7 @@ export async function put<T>(endpoint: string, data: any, options: RequestOption
     method: 'PUT',
     headers,
     body: JSON.stringify(data),
-    credentials: options.credentials || 'omit',
+    credentials: options.credentials || 'include',
     mode: options.mode || 'cors',
   });
   
@@ -142,6 +156,7 @@ export async function del<T>(endpoint: string, options: RequestOptions = {}): Pr
   // Add authorization header
   const headers: HeadersInit = {
     'Accept': 'application/json',
+    'X-CSRF-TOKEN': 'disabled', // Add explicit CSRF token disable header
     ...options.headers,
   };
   
@@ -153,7 +168,7 @@ export async function del<T>(endpoint: string, options: RequestOptions = {}): Pr
   const response = await fetch(url, {
     method: 'DELETE',
     headers,
-    credentials: options.credentials || 'omit',
+    credentials: options.credentials || 'include',
     mode: options.mode || 'cors',
   });
   

@@ -54,14 +54,24 @@ public class JwtService {
             String username,
             long expiration
     ) {
-        return Jwts
+        System.out.println("Building token for username: " + username + " with expiration: " + expiration + "ms");
+        Date now = new Date();
+        Date expirationDate = new Date(now.getTime() + expiration);
+        
+        String token = Jwts
                 .builder()
                 .setClaims(extraClaims)
                 .setSubject(username)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setIssuedAt(now)
+                .setExpiration(expirationDate)
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
+        
+        System.out.println("Token generated: " + token.substring(0, 20) + "...");
+        System.out.println("Token issued at: " + now);
+        System.out.println("Token expires at: " + expirationDate);
+        
+        return token;
     }
     
     public boolean isTokenValid(String token, UserDetails userDetails) {

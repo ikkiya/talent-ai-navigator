@@ -21,9 +21,12 @@ export function useAuthProvider() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': 'disabled', // Add token to explicitly indicate CSRF is disabled
         },
         body: JSON.stringify({ email, password }),
-        credentials: 'include' // Include cookies if any
+        mode: 'cors', // Explicitly set CORS mode
+        credentials: 'omit' // Don't include credentials to avoid CSRF issues
       });
       
       console.log('Login response status:', response.status);

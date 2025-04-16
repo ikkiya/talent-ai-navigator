@@ -1,4 +1,3 @@
-
 /**
  * API client for making requests to the Java backend
  */
@@ -9,6 +8,7 @@ type RequestOptions = {
   headers?: Record<string, string>;
   params?: Record<string, string>;
   credentials?: RequestCredentials;
+  mode?: RequestMode;
 };
 
 export async function get<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
@@ -23,6 +23,7 @@ export async function get<T>(endpoint: string, options: RequestOptions = {}): Pr
   
   // Add authorization header
   const headers: HeadersInit = {
+    'Accept': 'application/json',
     ...options.headers,
   };
   
@@ -31,10 +32,14 @@ export async function get<T>(endpoint: string, options: RequestOptions = {}): Pr
     headers['Authorization'] = `Bearer ${token}`;
   }
   
+  // Add CSRF token workaround
+  headers['X-CSRF-TOKEN'] = 'disabled';
+  
   const response = await fetch(url.toString(), {
     method: 'GET',
     headers,
-    credentials: options.credentials || 'same-origin',
+    credentials: options.credentials || 'omit',
+    mode: options.mode || 'cors',
   });
   
   if (!response.ok) {
@@ -48,6 +53,10 @@ export async function get<T>(endpoint: string, options: RequestOptions = {}): Pr
     throw new Error(errorData.message || `API error: ${response.status} ${response.statusText}`);
   }
   
+  if (response.headers.get('content-length') === '0') {
+    return {} as T;
+  }
+  
   return await response.json();
 }
 
@@ -57,6 +66,7 @@ export async function post<T>(endpoint: string, data: any, options: RequestOptio
   // Add authorization header
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
     ...options.headers,
   };
   
@@ -65,11 +75,15 @@ export async function post<T>(endpoint: string, data: any, options: RequestOptio
     headers['Authorization'] = `Bearer ${token}`;
   }
   
+  // Add CSRF token workaround
+  headers['X-CSRF-TOKEN'] = 'disabled';
+  
   const response = await fetch(url, {
     method: 'POST',
     headers,
     body: JSON.stringify(data),
-    credentials: options.credentials || 'same-origin',
+    credentials: options.credentials || 'omit',
+    mode: options.mode || 'cors',
   });
   
   if (!response.ok) {
@@ -96,6 +110,7 @@ export async function put<T>(endpoint: string, data: any, options: RequestOption
   // Add authorization header
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
     ...options.headers,
   };
   
@@ -104,11 +119,15 @@ export async function put<T>(endpoint: string, data: any, options: RequestOption
     headers['Authorization'] = `Bearer ${token}`;
   }
   
+  // Add CSRF token workaround
+  headers['X-CSRF-TOKEN'] = 'disabled';
+  
   const response = await fetch(url, {
     method: 'PUT',
     headers,
     body: JSON.stringify(data),
-    credentials: options.credentials || 'same-origin',
+    credentials: options.credentials || 'omit',
+    mode: options.mode || 'cors',
   });
   
   if (!response.ok) {
@@ -134,6 +153,7 @@ export async function del<T>(endpoint: string, options: RequestOptions = {}): Pr
   
   // Add authorization header
   const headers: HeadersInit = {
+    'Accept': 'application/json',
     ...options.headers,
   };
   
@@ -142,10 +162,14 @@ export async function del<T>(endpoint: string, options: RequestOptions = {}): Pr
     headers['Authorization'] = `Bearer ${token}`;
   }
   
+  // Add CSRF token workaround
+  headers['X-CSRF-TOKEN'] = 'disabled';
+  
   const response = await fetch(url, {
     method: 'DELETE',
     headers,
-    credentials: options.credentials || 'same-origin',
+    credentials: options.credentials || 'omit',
+    mode: options.mode || 'cors',
   });
   
   if (!response.ok) {

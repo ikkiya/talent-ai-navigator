@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class AuthController {
     
     @Autowired
@@ -31,6 +31,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
         try {
+            System.out.println("Login request received for email: " + loginRequest.getEmail());
             AuthResponseDTO response = authService.login(loginRequest);
             if (response != null) {
                 Map<String, Object> result = new HashMap<>();
@@ -43,6 +44,8 @@ public class AuthController {
                     .body(Map.of("message", "Authentication failed"));
             }
         } catch (Exception e) {
+            System.out.println("Login error: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("message", e.getMessage()));
         }

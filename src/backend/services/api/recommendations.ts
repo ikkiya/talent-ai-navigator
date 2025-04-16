@@ -36,7 +36,6 @@ export const getTeamRecommendations = async (projectId: string): Promise<TeamRec
   } catch (error) {
     console.error('Error in getTeamRecommendations:', error);
     return {
-      id: '',
       projectId,
       recommendedEmployees: [],
       alternativeEmployees: [],

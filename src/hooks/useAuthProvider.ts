@@ -21,18 +21,15 @@ export function useAuthProvider() {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-CSRF-TOKEN': 'disabled', 
         },
         body: JSON.stringify({ email, password }),
         credentials: 'include',
         mode: 'cors',
       });
       
-      const responseText = await response.text();
-      
       let data;
       try {
-        data = JSON.parse(responseText);
+        data = await response.json();
       } catch (e) {
         console.error('Error parsing login response:', e);
         toast({

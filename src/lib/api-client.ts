@@ -9,7 +9,7 @@ type RequestOptions = {
   headers?: Record<string, string>;
   params?: Record<string, string>;
   credentials?: RequestCredentials;
-  mode?: RequestMode; // Add the missing mode property
+  mode?: RequestMode;
 };
 
 export async function get<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
@@ -25,7 +25,6 @@ export async function get<T>(endpoint: string, options: RequestOptions = {}): Pr
   // Add authorization header
   const headers: HeadersInit = {
     'Accept': 'application/json',
-    'X-CSRF-TOKEN': 'disabled', // Add explicit CSRF token disable header
     ...options.headers,
   };
   
@@ -66,7 +65,6 @@ export async function post<T>(endpoint: string, data: any, options: RequestOptio
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'X-CSRF-TOKEN': 'disabled', // Add explicit CSRF token disable header
     ...options.headers,
   };
   
@@ -74,10 +72,6 @@ export async function post<T>(endpoint: string, data: any, options: RequestOptio
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
-  console.log('Sending POST request to:', url);
-  console.log('Headers:', headers);
-  console.log('Request body:', data);
   
   const response = await fetch(url, {
     method: 'POST',
@@ -87,11 +81,8 @@ export async function post<T>(endpoint: string, data: any, options: RequestOptio
     mode: options.mode || 'cors',
   });
   
-  console.log('Response status:', response.status);
-  
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Error response body:', errorText);
     let errorData;
     try {
       errorData = JSON.parse(errorText);
@@ -115,7 +106,6 @@ export async function put<T>(endpoint: string, data: any, options: RequestOption
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'X-CSRF-TOKEN': 'disabled', // Add explicit CSRF token disable header
     ...options.headers,
   };
   
@@ -156,7 +146,6 @@ export async function del<T>(endpoint: string, options: RequestOptions = {}): Pr
   // Add authorization header
   const headers: HeadersInit = {
     'Accept': 'application/json',
-    'X-CSRF-TOKEN': 'disabled', // Add explicit CSRF token disable header
     ...options.headers,
   };
   

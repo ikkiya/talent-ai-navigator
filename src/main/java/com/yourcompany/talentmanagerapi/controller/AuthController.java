@@ -34,10 +34,13 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
         try {
-            System.out.println("Login request received for email: " + loginRequest.getEmail());
+            System.out.println("=== Login request received ===");
+            System.out.println("Email: " + loginRequest.getEmail());
+            System.out.println("Password: [MASKED]");
             
             // Validate request
             if (loginRequest.getEmail() == null || loginRequest.getPassword() == null) {
+                System.out.println("Login error: Missing email or password");
                 return ResponseEntity.badRequest()
                     .body(Map.of("message", "Email and password are required"));
             }

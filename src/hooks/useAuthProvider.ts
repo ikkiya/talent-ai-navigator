@@ -1,3 +1,4 @@
+
 import { useSession } from './useSession';
 import { UserRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +20,13 @@ export function useAuthProvider() {
     try {
       setIsLoading(true);
       console.log(`Attempting to login with email: ${email}`);
+      console.log(`API URL: ${API_URL}/auth/login`);
+      
+      // Add CORS debugging
+      console.log("Making fetch request with CORS settings:", {
+        credentials: 'include',
+        mode: 'cors'
+      });
       
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -32,6 +40,7 @@ export function useAuthProvider() {
       });
       
       console.log("Login response status:", response.status);
+      console.log("Login response headers:", Object.fromEntries([...response.headers]));
       
       let data;
       try {

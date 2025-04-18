@@ -1,4 +1,3 @@
-
 import { useSession } from './useSession';
 import { UserRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -12,7 +11,6 @@ export function useAuthProvider() {
   const auth = useSession();
   const [isLoading, setIsLoading] = useState(false);
   
-  // Sync authentication state with session
   useEffect(() => {
     console.log("Auth provider initialized, auth state:", auth);
   }, [auth]);

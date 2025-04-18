@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,7 +24,7 @@ const Login = () => {
     
     if (auth.isAuthenticated && !auth.isLoading) {
       console.log("User is authenticated, redirecting to dashboard");
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     }
   }, [auth.isAuthenticated, auth.isLoading, navigate]);
 
@@ -57,10 +56,6 @@ const Login = () => {
           title: "Success!",
           description: "Logged in successfully",
         });
-        
-        // Force navigation to dashboard after successful login
-        console.log("Forcing navigation to dashboard");
-        navigate('/dashboard', { replace: true });
       }
     } catch (error: any) {
       console.error('Demo login catch error:', error);
@@ -112,7 +107,6 @@ const Login = () => {
           description: "Logged in successfully",
         });
         
-        // Force navigation to dashboard after successful login
         console.log("Forcing navigation to dashboard");
         navigate('/dashboard', { replace: true });
       }

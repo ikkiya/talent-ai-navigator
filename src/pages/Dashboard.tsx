@@ -1,81 +1,40 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/backend/services/api';
-import { Employee, Project } from '@/types';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, UserCheck, UserMinus, BriefcaseBusiness, BarChart3, ArrowUpRight } from 'lucide-react';
 
+// Sample data for demonstration
+const departmentData = [
+  { name: 'Engineering', value: 42 },
+  { name: 'Product', value: 18 },
+  { name: 'Design', value: 15 },
+  { name: 'Marketing', value: 12 },
+  { name: 'Sales', value: 10 },
+  { name: 'HR', value: 5 },
+];
+
+const projectData = [
+  { month: 'Jan', count: 4 },
+  { month: 'Feb', count: 6 },
+  { month: 'Mar', count: 5 },
+  { month: 'Apr', count: 7 },
+  { month: 'May', count: 8 },
+  { month: 'Jun', count: 10 },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d'];
+
 const Dashboard = () => {
-  const { auth } = useAuth();
-  
-  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery<Employee[]>({
-    queryKey: ['employees'],
-    queryFn: api.employees.getAll,
-  });
-  
-  const { data: projects = [], isLoading: isLoadingProjects } = useQuery<Project[]>({
-    queryKey: ['projects'],
-    queryFn: api.projects.getAll,
-  });
-  
-  if (isLoadingEmployees || isLoadingProjects) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div>Loading dashboard data...</div>
-        </div>
-      </Layout>
-    );
-  }
-  
-  // Employee stats
-  const totalEmployees = employees.length || 0;
-  const activeEmployees = employees.filter(e => e.status === 'active').length || 0;
-  const employeesWithMentor = employees.filter(e => e.mentorId).length || 0;
-  const atRiskEmployees = employees.filter(e => {
-    if (!e.retentionMatrix) return false;
-    // Calculate average risk score
-    const values = Object.values(e.retentionMatrix);
-    const avgScore = values.reduce((sum, val) => sum + val, 0) / values.length;
-    return avgScore < 3; // Consider "at risk" if average score is less than 3
-  }).length || 0;
-  
-  // Department distribution for pie chart
-  const departmentCount = employees.reduce<Record<string, number>>((acc, employee) => {
-    acc[employee.department] = (acc[employee.department] || 0) + 1;
-    return acc;
-  }, {}) || {};
-  
-  const departmentData = Object.keys(departmentCount).map(dept => ({
-    name: dept,
-    value: departmentCount[dept],
-  }));
-  
-  // Monthly project count for area chart
-  const projectData = [
-    { month: 'Jan', count: 4 },
-    { month: 'Feb', count: 6 },
-    { month: 'Mar', count: 5 },
-    { month: 'Apr', count: 7 },
-    { month: 'May', count: 8 },
-    { month: 'Jun', count: 10 },
-  ];
-  
-  // Colors for pie chart
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-  
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back, {auth.user?.firstName}! Here's an overview of your team's data.
+            Welcome! Here's an overview of your team's data.
           </p>
         </div>
         
@@ -86,7 +45,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
-                  <h3 className="text-3xl font-bold mt-1">{totalEmployees}</h3>
+                  <h3 className="text-3xl font-bold mt-1">124</h3>
                 </div>
                 <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
                   <Users className="h-6 w-6 text-primary" />
@@ -95,9 +54,9 @@ const Dashboard = () => {
               <div className="mt-4">
                 <div className="flex items-center justify-between text-sm">
                   <span>Active</span>
-                  <span className="font-medium">{Math.round((activeEmployees / totalEmployees) * 100)}%</span>
+                  <span className="font-medium">89%</span>
                 </div>
-                <Progress value={(activeEmployees / totalEmployees) * 100} className="h-2 mt-1" />
+                <Progress value={89} className="h-2 mt-1" />
               </div>
             </CardContent>
           </Card>
@@ -107,18 +66,18 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">With Mentors</p>
-                  <h3 className="text-3xl font-bold mt-1">{employeesWithMentor}</h3>
+                  <h3 className="text-3xl font-bold mt-1">89</h3>
                 </div>
-                <div className="h-12 w-12 bg-brand-green/10 rounded-full flex items-center justify-center">
-                  <UserCheck className="h-6 w-6 text-brand-green" />
+                <div className="h-12 w-12 bg-green-500/10 rounded-full flex items-center justify-center">
+                  <UserCheck className="h-6 w-6 text-green-500" />
                 </div>
               </div>
               <div className="mt-4">
                 <div className="flex items-center justify-between text-sm">
                   <span>Coverage</span>
-                  <span className="font-medium">{Math.round((employeesWithMentor / totalEmployees) * 100)}%</span>
+                  <span className="font-medium">72%</span>
                 </div>
-                <Progress value={(employeesWithMentor / totalEmployees) * 100} className="h-2 mt-1" />
+                <Progress value={72} className="h-2 mt-1" />
               </div>
             </CardContent>
           </Card>
@@ -128,7 +87,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Active Projects</p>
-                  <h3 className="text-3xl font-bold mt-1">{projects?.filter(p => p.status === 'active').length || 0}</h3>
+                  <h3 className="text-3xl font-bold mt-1">12</h3>
                 </div>
                 <div className="h-12 w-12 bg-blue-500/10 rounded-full flex items-center justify-center">
                   <BriefcaseBusiness className="h-6 w-6 text-blue-500" />
@@ -137,7 +96,7 @@ const Dashboard = () => {
               <div className="mt-4">
                 <div className="flex items-center justify-between text-sm">
                   <span>In Planning</span>
-                  <span className="font-medium">{projects?.filter(p => p.status === 'planning').length || 0}</span>
+                  <span className="font-medium">4</span>
                 </div>
                 <div className="flex items-center text-xs text-muted-foreground mt-1">
                   <ArrowUpRight className="h-3 w-3 mr-1" />
@@ -152,7 +111,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">At-Risk Employees</p>
-                  <h3 className="text-3xl font-bold mt-1">{atRiskEmployees}</h3>
+                  <h3 className="text-3xl font-bold mt-1">7</h3>
                 </div>
                 <div className="h-12 w-12 bg-red-500/10 rounded-full flex items-center justify-center">
                   <UserMinus className="h-6 w-6 text-red-500" />
@@ -161,9 +120,9 @@ const Dashboard = () => {
               <div className="mt-4">
                 <div className="flex items-center justify-between text-sm">
                   <span>Percentage</span>
-                  <span className="font-medium">{Math.round((atRiskEmployees / totalEmployees) * 100)}%</span>
+                  <span className="font-medium">5.6%</span>
                 </div>
-                <Progress value={(atRiskEmployees / totalEmployees) * 100} className="h-2 mt-1" />
+                <Progress value={5.6} className="h-2 mt-1" />
               </div>
             </CardContent>
           </Card>
@@ -250,8 +209,8 @@ const Dashboard = () => {
               </div>
               
               <div className="flex gap-4 items-start">
-                <div className="h-10 w-10 rounded-full bg-brand-green/10 flex items-center justify-center mt-1">
-                  <BarChart3 className="h-5 w-5 text-brand-green" />
+                <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center mt-1">
+                  <BarChart3 className="h-5 w-5 text-green-500" />
                 </div>
                 <div>
                   <p className="font-medium">Competency matrix updated</p>

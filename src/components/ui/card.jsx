@@ -1,55 +1,71 @@
 
 import * as React from "react"
 
-function Card({ className, ...props }) {
+const Card = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <div
-      className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className}`}
+      ref={ref}
+      className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className || ""}`}
       {...props}
     />
-  )
-}
+  );
+});
 
-function CardHeader({ className, ...props }) {
+const CardHeader = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <div
-      className={`flex flex-col space-y-1.5 p-6 ${className}`}
+      ref={ref}
+      className={`flex flex-col space-y-1.5 p-6 ${className || ""}`}
       {...props}
     />
-  )
-}
+  );
+});
 
-function CardTitle({ className, ...props }) {
+const CardTitle = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <h3
-      className={`text-2xl font-semibold leading-none tracking-tight ${className}`}
+      ref={ref}
+      className={`text-2xl font-semibold leading-none tracking-tight ${className || ""}`}
       {...props}
     />
-  )
-}
+  );
+});
 
-function CardDescription({ className, ...props }) {
+const CardDescription = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <p
-      className={`text-sm text-muted-foreground ${className}`}
+      ref={ref}
+      className={`text-sm text-muted-foreground ${className || ""}`}
       {...props}
     />
-  )
-}
+  );
+});
 
-function CardContent({ className, ...props }) {
+const CardContent = React.forwardRef(({ className, ...props }, ref) => {
   return (
-    <div className={`p-6 pt-0 ${className}`} {...props} />
-  )
-}
+    <div 
+      ref={ref}
+      className={`p-6 pt-0 ${className || ""}`} 
+      {...props} 
+    />
+  );
+});
 
-function CardFooter({ className, ...props }) {
+const CardFooter = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <div
-      className={`flex items-center p-6 pt-0 ${className}`}
+      ref={ref}
+      className={`flex items-center p-6 pt-0 ${className || ""}`}
       {...props}
     />
-  )
-}
+  );
+});
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+Card.displayName = "Card";
+CardHeader.displayName = "CardHeader";
+CardTitle.displayName = "CardTitle";
+CardDescription.displayName = "CardDescription";
+CardContent.displayName = "CardContent";
+CardFooter.displayName = "CardFooter";
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };

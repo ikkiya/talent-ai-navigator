@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import Settings from "./pages/Settings";
 import Users from "./pages/admin/Users";
 import TalentPool from "./pages/admin/TalentPool";
 import Reports from "./pages/admin/Reports";
+import Parameters from "./pages/admin/Parameters";
 
 // Manager pages
 import Employees from "./pages/manager/Employees";
@@ -107,6 +107,12 @@ const App = () => (
             <Route path="/admin/reports" element={
               <ProtectedRoute requiredRoles={["admin"]}>
                 <Reports />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin/parameters" element={
+              <ProtectedRoute requiredRoles={["admin"]}>
+                <Parameters />
               </ProtectedRoute>
             } />
             
